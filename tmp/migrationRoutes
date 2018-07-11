@@ -1,0 +1,35 @@
+
+
+
+/**
+ * Routes for database migration
+ */
+
+// Route::get('/migrate/people', 'MigrationController@migratePeople')->name('migrate.people');
+// Route::get('/migrate/users', 'MigrationController@migrateUsers')->name('migrate.users');
+// Route::get('/migrate/units', 'MigrationController@migrateUnits')->name('migrate.units');
+// Route::get('/migrate/teams', 'MigrationController@migrateTeams')->name('migrate.teams');
+// Route::get('/migrate/profiles', 'MigrationController@migrateProfiles')->name('migrate.profiles');
+// Route::get('/migrate/ciaps', 'MigrationController@migrateCiaps')->name('migrate.ciaps');
+// Route::get('/migrate/cids', 'MigrationController@migrateCids')->name('migrate.cids');
+// Route::get('/migrate/solicitations', 'MigrationController@migrateSolicitations')->name('migrate.solicitations');
+// Route::get('/migrate/answers', 'MigrationController@migrateAnswers')->name('migrate.answers');
+// Route::get('/migrate/solicitation_forwards', 'MigrationController@migrateSolicitationForwards')->name('migrate.solicitation_forwards');
+// Route::get('/migrate/solicitation_observations', 'MigrationController@migrateSolicitationObservations')->name('migrate.solicitation_observations');
+// Route::get('/migrate/profiles_teams', 'MigrationController@migrateProfilesTeams')->name('migrate.profiles_teams');
+// Route::get('/migrate/patients_people', 'MigrationController@migratePatientsPeople')->name('migrate.patients_people');
+// Route::get('/migrate/patients', 'MigrationController@migratePatients')->name('migrate.patients');
+// Route::get('/migrate/patient_forwards', 'MigrationController@migratePatientForwards')->name('migrate.patient_forwards');
+// Route::get('/migrate/center_profiles', 'MigrationController@migrateCentersProfile')->name('migrate.center_profiles');
+// Route::get('/migrate/evaluations', 'MigrationController@migrateEvaluations')->name('evaluations.migrate');
+
+
+// Route::get('/', 'SolicitacaoController@index');
+//
+// Route::get('/home', 'SolicitacaoController@index')->name('home');
+//
+// Route::get('/solicitacao/criar', 'SolicitacaoController@create')->name('solicitar_tele');
+//
+
+//
+// Route::get('/solicitacoes_enviadas', 'SolicitacaoController@solicitacoesEnviadas')->name('solicitacoes_enviadas');
