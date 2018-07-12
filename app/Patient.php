@@ -12,4 +12,10 @@ class Patient extends Model
     {
         return $this->belongsTo('App\Person');
     }
+
+    public function patientForward()
+    {
+        return $this->hasOne('App\PatientForward');
+    }
+
 }

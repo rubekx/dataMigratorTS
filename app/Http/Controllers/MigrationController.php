@@ -59,6 +59,10 @@ class MigrationController extends Controller
         $controller->migrateSolicitationCiapCid();
         $controller->migrateSolicitationDate();
         $controller->migrateSolicitationDateTimestamp();
+        $controller->migrateSolicitationEncaminhamento();
+        $controller->migrateSolicitationEncaminhamentoPaciente();
+        $controller->migrateSolicitationRegulacao();
+        $controller->migrateSolicitationResposta();
 
         info('Done!');
     }
@@ -71,6 +75,148 @@ class MigrationController extends Controller
         return null;
     }
 
+
+    public function migrateSolicitationResposta()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+
+        info('Migrating solicitations Resposta table...');
+
+        foreach ($solicitations as $solicitation) {
+            if (!in_array($solicitation->status_id, [3, 4, 6, 7, 8, 9, 10, 11, 19, 20, 24, 25])) {
+                $solicitacao = Resposta::where('codigo', '=', $solicitation->id)->get()->first();
+
+                if ($solicitacao == NULL) {
+                    $solicitacao = new Resposta;
+                    $solicitacao->codigo = $solicitation->id;
+                }
+                $solicitacao->codigoTeleconsultor = $solicitation->solicitationForward->consultant_profile_id;
+                $solicitacao->solicitacaoRepetida = 0;
+                $solicitacao->justificativaDevolucaoTeleconsultor = $solicitation->answers;
+                $solicitacao->solicitacaoResposta = $solicitation->answers->direct_answer;
+                $solicitacao->solicitacaoComplemento = $solicitation->answers->complement;
+                $solicitacao->solicitacaoAtributos = $solicitation->answers->attributes;
+                $solicitacao->solicitacaoEduPermanente = $solicitation->answers->permanent_education;
+                $solicitacao->solicitacaoReferencia = $solicitation->answers->references;
+                $solicitacao->estrategiaBusca = $solicitation->answers->tags;
+                $solicitacao->solsofcod = $solicitation->answers->isSOF;
+                $solicitacao->respostaAceita = 1;
+
+                try {
+                    $solicitacao->save();
+                } catch (\Exception $e) {
+                    Log::error($e->getMessage());
+                }
+            }
+        }
+    }
+
+    public function migrateSolicitationRegulacao()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+
+        info('Migrating solicitations Regulacao table...');
+
+        foreach ($solicitations as $solicitation) {
+            $solicitacao = Regulacao::where('codigo', '=', $solicitation->id)->get()->first();
+
+            if ($solicitacao == NULL) {
+                $solicitacao = new Regulacao;
+                $solicitacao->codigo = $solicitation->id;
+            }
+            $solicitacao->codigoRegulador = $solicitation->solicitationForward->regulator_profile_id;
+            $solicitacao->aceiteTelerregulacao = 1;
+
+            if ($solicitacao->status_id == 20 || $solicitacao->status_id == 25) {
+                $solicitacao->justificativaDevCan = $solicitation->observation->description;
+            } else {
+                $solicitacao->justificativaDevCan = null;
+            }
+
+            try {
+                $solicitacao->save();
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
+        }
+    }
+
+    public function migrateSolicitationEncaminhamentoPaciente()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+
+        $solicitations = Solicitation::select(
+            'patients.cns as cns',
+            'patients.mother_name as mother_name',
+            'patient_forwards.patient_id as patient')
+            ->join('patient_forwards', 'patient_forwards.solicitation_id', '=', 'solicitations.id')
+            ->where('solicitations.updated_at', '>=', $min_date)
+            ->whereNotNull('patient_forwards.patient_id')
+            ->get();
+
+        info('Migrating solicitations Encaminhamento Paciente table...');
+
+        foreach ($solicitations as $solicitation) {
+            $solicitacao = SolEncaminhamentoPaciente::where('codigo', '=', $solicitation->id)->get()->first();
+
+            if ($solicitacao == NULL) {
+                $solicitacao = new SolEncaminhamentoPaciente;
+                $solicitacao->solicitacao = $solicitation->id;
+            }
+            $solicitacao->paciente_mae = $solicitation->mother_name;
+            $solicitacao->paciente_nome = $solicitation->patient->person->name;
+            $solicitacao->paciente_nascimento = $solicitation->patient->person->birthday;
+            $solicitacao->paciente_sexo = ($solicitation->patient->person->sex == 'F') ? 1 : 0;
+            $solicitacao->paciente_cpf = $solicitation->patient->person->cpf;
+            $solicitacao->paciente_cns = $solicitation->cns;
+
+            try {
+
+                $solicitacao->save();
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
+        }
+    }
+
+    public function migrateSolicitationEncaminhamento()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+
+        info('Migrating solicitations Encaminhamento table...');
+
+        foreach ($solicitations as $solicitation) {
+            $solicitacao = SolEncaminhamento::where('codigo', '=', $solicitation->id)->get()->first();
+
+            if ($solicitacao == NULL) {
+                $solicitacao = new SolEncaminhamento;
+                $solicitacao->codigo = $solicitation->id;
+            }
+            $solicitacao->intencaoEncaminhamento = $solicitation->patientForward->has_intention;
+            $solicitacao->sugestaoEncaminhamento = 0;
+            $solicitacao->codigoSugestaoEncaminhamento = 0;
+            $solicitacao->cboEspecialidade = $solicitation->patientForward->cbo_id;
+            $solicitacao->evitacaoEncaminhamento = $solicitation->evaluation->avoided_forwarding;
+            $solicitacao->inducaoEncaminhamento = $solicitation->evaluation->induced_forwarding;
+
+            try {
+                $solicitacao->save();
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
+        }
+    }
+
     public function migrateSolicitationDateTimestamp()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
@@ -78,7 +224,7 @@ class MigrationController extends Controller
 
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
 
-        info('Migrating solicitations data table...');
+        info('Migrating solicitations Date Timestamp table...');
 
         foreach ($solicitations as $solicitation) {
             $solicitacao = Solicitacao_Datas_Timestamp::where('codigo', '=', $solicitation->id)->get()->first();
@@ -114,7 +260,7 @@ class MigrationController extends Controller
 
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get('created_at');
 
-        info('Migrating solicitations data table...');
+        info('Migrating solicitations Date table...');
 
         foreach ($solicitations as $solicitation) {
             $solicitacao = Solicitacao_Datas::where('codigo', '=', $solicitation->id)->get()->first();
