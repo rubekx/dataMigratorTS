@@ -63,6 +63,8 @@ class MigrationController extends Controller
         $controller->migrateSolicitationEncaminhamentoPaciente();
         $controller->migrateSolicitationRegulacao();
         $controller->migrateSolicitationResposta();
+        $controller->migrateSolicitationSatisfacao();
+        $controller->migrateSolicitationStatus();
 
         info('Done!');
     }
@@ -75,6 +77,92 @@ class MigrationController extends Controller
         return null;
     }
 
+    public static function status($status_id)
+    {
+        if (!empty($status_id)) {
+            if ($status_id == 27) {
+                return 1;
+            } elseif ($status_id == 28) {
+                return 2;
+            } elseif ($status_id == 29) {
+                return 3;
+            } elseif ($status_id == 30) {
+                return 4;
+            } elseif ($status_id == 31) {
+                return 5;
+            } elseif ($status_id == 32) {
+                return 1;
+            } elseif ($status_id == 33) {
+                return 2;
+            } elseif ($status_id == 34) {
+                return 3;
+            }
+        }
+        return null;
+    }
+
+
+    public function migrateSolicitationStatus()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+
+        info('Migrating solicitations Resposta table...');
+
+        foreach ($solicitations as $solicitation) {
+            $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
+
+            if ($solicitacao == NULL) {
+                $solicitacao = new Satisfacao;
+                $solicitacao->codigo = $solicitation->id;
+            }
+
+            $solicitacao->situacaoTeleconsultoria = $solicitation->status_id;
+            $solicitacao->atrasoForaLimite = 0;
+            $solicitacao->atrasoEtapa = ($solicitation->status_id == 7 || $solicitation->status_id == 9 || $solicitation->status_id == 11 || $solicitation->status_id == 13) ? 1 : 0;
+
+            try {
+                $solicitacao->save();
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
+        }
+    }
+
+    public function migrateSolicitationSatisfacao()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+
+        info('Migrating solicitations Resposta table...');
+
+        foreach ($solicitations as $solicitation) {
+            if (in_array($solicitation->status_id, [22])) {
+                $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
+
+                if ($solicitacao == NULL) {
+                    $solicitacao = new Satisfacao;
+                    $solicitacao->codigo = $solicitation->id;
+                }
+
+                $solicitacao->satisfacaoResposta = MigrationController::status($solicitation->evaluation->satisfaction_status_id);
+                $solicitacao->classificacaoResposta = MigrationController::status($solicitation->evaluation->attendance_status_id);
+                $solicitacao->criticasSugestoes = $solicitation->evaluation->description;
+                $solicitacao->evitacaoEncaminhamento = $solicitation->evaluation->avoided_forwarding;
+                $solicitacao->inducaoEncaminhamento = $solicitation->evaluation->induced_forwarding;
+
+                try {
+                    $solicitacao->save();
+                } catch (\Exception $e) {
+                    Log::error($e->getMessage());
+                }
+            }
+        }
+    }
 
     public function migrateSolicitationResposta()
     {
@@ -93,6 +181,7 @@ class MigrationController extends Controller
                     $solicitacao = new Resposta;
                     $solicitacao->codigo = $solicitation->id;
                 }
+
                 $solicitacao->codigoTeleconsultor = $solicitation->solicitationForward->consultant_profile_id;
                 $solicitacao->solicitacaoRepetida = 0;
                 $solicitacao->justificativaDevolucaoTeleconsultor = $solicitation->answers;
