@@ -66,7 +66,7 @@ class MigrationController extends Controller
     public static function statusHistoryDate($solicitation_id, $status_id)
     {
         if (!empty($solicitation_id) && !empty($status_id)) {
-            return StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get();
+            return StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get('created_at');
         }
         return null;
     }
@@ -76,7 +76,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get('created_at');
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating solicitations data table...');
 
