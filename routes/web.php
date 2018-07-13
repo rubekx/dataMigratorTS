@@ -11,5 +11,13 @@
 |
 */
 
-use Vinkla\Hashids\Facades\Hashids;
+//use Vinkla\Hashids\Facades\Hashids;
+
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+
+Route::get('/update', 'MigrationController@populateDatabase')->name('update');
 

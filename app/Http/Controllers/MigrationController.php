@@ -136,30 +136,28 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->where('status_id', 22)->get();
 
         info('Migrating solicitations Resposta table...');
 
         foreach ($solicitations as $solicitation) {
-            if (in_array($solicitation->status_id, [22])) {
-                $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
+            $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
 
-                if ($solicitacao == NULL) {
-                    $solicitacao = new Satisfacao;
-                    $solicitacao->codigo = $solicitation->id;
-                }
+            if ($solicitacao == NULL) {
+                $solicitacao = new Satisfacao;
+                $solicitacao->codigo = $solicitation->id;
+            }
 
-                $solicitacao->satisfacaoResposta = MigrationController::status($solicitation->evaluation->satisfaction_status_id);
-                $solicitacao->classificacaoResposta = MigrationController::status($solicitation->evaluation->attendance_status_id);
-                $solicitacao->criticasSugestoes = $solicitation->evaluation->description;
-                $solicitacao->evitacaoEncaminhamento = $solicitation->evaluation->avoided_forwarding;
-                $solicitacao->inducaoEncaminhamento = $solicitation->evaluation->induced_forwarding;
+            $solicitacao->satisfacaoResposta = MigrationController::status($solicitation->evaluation->satisfaction_status_id);
+            $solicitacao->classificacaoResposta = MigrationController::status($solicitation->evaluation->attendance_status_id);
+            $solicitacao->criticasSugestoes = $solicitation->evaluation->description;
+            $solicitacao->evitacaoEncaminhamento = $solicitation->evaluation->avoided_forwarding;
+            $solicitacao->inducaoEncaminhamento = $solicitation->evaluation->induced_forwarding;
 
-                try {
-                    $solicitacao->save();
-                } catch (\Exception $e) {
-                    Log::error($e->getMessage());
-                }
+            try {
+                $solicitacao->save();
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
             }
         }
     }
@@ -169,36 +167,36 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+            ->whereNotIn('status_id', [3, 4, 6, 7, 8, 9, 10, 11, 19, 20, 24, 25])
+            ->get();
 
         info('Migrating solicitations Resposta table...');
 
         foreach ($solicitations as $solicitation) {
-            if (!in_array($solicitation->status_id, [3, 4, 6, 7, 8, 9, 10, 11, 19, 20, 24, 25])) {
-                $solicitacao = Resposta::where('codigo', '=', $solicitation->id)->get()->first();
+            $solicitacao = Resposta::where('codigo', '=', $solicitation->id)->get()->first();
 
-                if ($solicitacao == NULL) {
-                    $solicitacao = new Resposta;
-                    $solicitacao->codigo = $solicitation->id;
-                }
+            if ($solicitacao == NULL) {
+                $solicitacao = new Resposta;
+                $solicitacao->codigo = $solicitation->id;
+            }
 
-                $solicitacao->codigoTeleconsultor = $solicitation->solicitationForward->consultant_profile_id;
-                $solicitacao->solicitacaoRepetida = 0;
-                $solicitacao->justificativaDevolucaoTeleconsultor = $solicitation->answers;
-                $solicitacao->solicitacaoResposta = $solicitation->answers->direct_answer;
-                $solicitacao->solicitacaoComplemento = $solicitation->answers->complement;
-                $solicitacao->solicitacaoAtributos = $solicitation->answers->attributes;
-                $solicitacao->solicitacaoEduPermanente = $solicitation->answers->permanent_education;
-                $solicitacao->solicitacaoReferencia = $solicitation->answers->references;
-                $solicitacao->estrategiaBusca = $solicitation->answers->tags;
-                $solicitacao->solsofcod = $solicitation->answers->isSOF;
-                $solicitacao->respostaAceita = 1;
+            $solicitacao->codigoTeleconsultor = $solicitation->solicitationForward->consultant_profile_id;
+            $solicitacao->solicitacaoRepetida = 0;
+            $solicitacao->justificativaDevolucaoTeleconsultor = $solicitation->answers;
+            $solicitacao->solicitacaoResposta = $solicitation->answers->direct_answer;
+            $solicitacao->solicitacaoComplemento = $solicitation->answers->complement;
+            $solicitacao->solicitacaoAtributos = $solicitation->answers->attributes;
+            $solicitacao->solicitacaoEduPermanente = $solicitation->answers->permanent_education;
+            $solicitacao->solicitacaoReferencia = $solicitation->answers->references;
+            $solicitacao->estrategiaBusca = $solicitation->answers->tags;
+            $solicitacao->solsofcod = $solicitation->answers->isSOF;
+            $solicitacao->respostaAceita = 1;
 
-                try {
-                    $solicitacao->save();
-                } catch (\Exception $e) {
-                    Log::error($e->getMessage());
-                }
+            try {
+                $solicitacao->save();
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
             }
         }
     }
@@ -280,7 +278,9 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::has('patientForward')->where('solicitation.updated_at', '>=', $min_date)
+            ->where()
+            ->get();
 
         info('Migrating solicitations Encaminhamento table...');
 
@@ -369,6 +369,7 @@ class MigrationController extends Controller
             $solicitacao->soldtsteleit = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 21)));
             $solicitacao->soldtavalin = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 22)));
             $solicitacao->soldtavalfim = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 22)));
+
 
             try {
                 $solicitacao->save();
@@ -467,9 +468,10 @@ class MigrationController extends Controller
             } else {
                 $perfil->atuacao = $profile->role_id;
             }
-            $pessoa->ativo = ($profile->status_id == 2) ? 0 : $profile->status_id;
+            $perfil->ativo = ($profile->status_id == 2) ? 0 : $profile->status_id;
             $perfil->equipe = ($profile->role_id == 7) ? $profile->profile_team->team_id : 0;
             $perfil->dataAtualizacao = date('Y-m-d');
+
             try {
                 $perfil->save();
             } catch (\Exception $e) {
@@ -500,7 +502,7 @@ class MigrationController extends Controller
                 $pessoa->celular = $person->celphone;
                 $pessoa->email = $person->user->email;
                 $pessoa->cpf = $person->cpf;
-                $pessoa->dataInclusao = date('Y-m-d', srtotime($person->created_at));
+                $pessoa->dataInclusao = date('Y-m-d', strtotime($person->created_at));
                 $pessoa->dataAtualizacao = date('Y-m-d');
 
                 try {
@@ -514,7 +516,7 @@ class MigrationController extends Controller
 
     public function migrateTeams()
     {
-        $teams = Teams::all();
+        $teams = Team::all();
 
         info('Migrating teams table...');
 
