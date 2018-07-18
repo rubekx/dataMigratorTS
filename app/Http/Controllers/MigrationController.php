@@ -24,6 +24,7 @@ use App\Dash\SolEncaminhamentoPaciente;
 use App\Dash\SolEncaminhamento;
 use App\Dash\Satisfacao;
 use App\Dash\StatusSolicitacao;
+use App\Dash\Solcod_Ibge;
 
 use App\Person;
 use App\User;
@@ -67,6 +68,7 @@ class MigrationController extends Controller
         $controller->migrateSolicitationResposta();
         $controller->migrateSolicitationSatisfacao();
         $controller->migrateSolicitationStatus();
+        $controller->migrateSolicitationSolcodIbge();
 
         info('Done!');
     }
@@ -106,6 +108,36 @@ class MigrationController extends Controller
         return null;
     }
 
+
+    public function migrateSolicitationSolcodIbge()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+            ->get();
+
+        info('Migrating solicitations SolcodIbge table...');
+        $i = 0;
+        $j = 0;
+        foreach ($solicitations as $solicitation) {
+            $solicitacao = Solcod_Ibge::where('codigo', '=', $solicitation->id)->get()->first();
+            if ($solicitacao == NULL) {
+                $solicitacao = new Solcod_Ibge;
+                $solicitacao->codigo = $solicitation->id;
+                $j++;
+            }
+            $i++;
+            $solicitacao->ibge = $solicitation->profile->profile_team->team->unit->city->ibge;
+            try {
+                $solicitacao->save();
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
+        }
+        info($j);
+        info($i - $j);
+    }
 
     public function migrateSolicitationStatus()
     {
@@ -513,7 +545,7 @@ class MigrationController extends Controller
             }
             $i++;
             $perfil->pessoa = $profile->user->person->id;
-            $perfil->cbo = $profile->cbo_id;
+            $perfil->cbo = $profile->cbo->code;
             $perfil->tipoProfissional = 0;
             if ($profile->role_id == 5) {
                 $perfil->atuacao = 7;
@@ -524,7 +556,7 @@ class MigrationController extends Controller
             } else {
                 $perfil->atuacao = $profile->role_id;
             }
-            $perfil->ativo = ($profile->status_id == 2) ? 0 : $profile->status_id;
+            $perfil->ativo = ($profile->status_id == 1) ? 1 : 0;
             $perfil->equipe = ($profile->role_id == 7) ? $profile->profile_team->team_id : 0;
             $perfil->dataAtualizacao = date('Y-m-d');
 
@@ -563,7 +595,7 @@ class MigrationController extends Controller
                 $pessoa->celular = $person->celphone;
                 $pessoa->email = $person->user->email;
                 $pessoa->cpf = $person->cpf;
-                $pessoa->dataInclusao = date('Y-m-d', strtotime($person->created_at));
+                $pessoa->dataInclusao = ($person->created_at != null) ? date('Y-m-d', strtotime($person->created_at)) : null;
                 $pessoa->dataAtualizacao = date('Y-m-d');
 
                 try {
@@ -596,7 +628,7 @@ class MigrationController extends Controller
             $equipe->nome = $team->description;
             $equipe->ine = $team->ine;
 
-            $equipe->ativo = $team->status_id;
+            $equipe->ativo = ($team->status_id == 1) ? 1 : 0;
             $equipe->dataAtualizacao = date('Y-m-d');
 
             try {
@@ -628,7 +660,7 @@ class MigrationController extends Controller
             $ubs->nome = $unit->description;
             $ubs->endereco = $unit->address;
             $ubs->telefone = $unit->telphone;
-            $ubs->ativo = $unit->status_id;
+            $ubs->ativo = ($unit->status_id == 1) ? 1 : 0;
             $ubs->dataAtualizacao = date('Y-m-d');
 
             try {
