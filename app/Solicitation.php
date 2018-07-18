@@ -78,5 +78,4 @@ class Solicitation extends Model
         return $this->hasOne('App\PatientForward',  'solicitation_id');
     }
 
-
 }

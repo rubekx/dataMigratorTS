@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Status;
 use Illuminate\Http\Request;
 
 use Illuminate\Support\Facades\Log;
@@ -22,6 +23,7 @@ use App\Dash\Regulacao;
 use App\Dash\SolEncaminhamentoPaciente;
 use App\Dash\SolEncaminhamento;
 use App\Dash\Satisfacao;
+use App\Dash\StatusSolicitacao;
 
 use App\Person;
 use App\User;
@@ -72,7 +74,10 @@ class MigrationController extends Controller
     public static function statusHistoryDate($solicitation_id, $status_id)
     {
         if (!empty($solicitation_id) && !empty($status_id)) {
-            return StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get('created_at');
+            $statusHistoryDate = StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get(['created_at'])->first();
+            if ($statusHistoryDate) {
+                return $statusHistoryDate['created_at'];
+            }
         }
         return null;
     }
@@ -109,16 +114,18 @@ class MigrationController extends Controller
 
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
 
-        info('Migrating solicitations Resposta table...');
-
+        info('Migrating solicitations Status table...');
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
-            $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
+            $solicitacao = StatusSolicitacao::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
-                $solicitacao = new Satisfacao;
+                $solicitacao = new StatusSolicitacao;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
-
+            $i++;
             $solicitacao->situacaoTeleconsultoria = $solicitation->status_id;
             $solicitacao->atrasoForaLimite = 0;
             $solicitacao->atrasoEtapa = ($solicitation->status_id == 7 || $solicitation->status_id == 9 || $solicitation->status_id == 11 || $solicitation->status_id == 13) ? 1 : 0;
@@ -129,6 +136,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateSolicitationSatisfacao()
@@ -138,16 +147,18 @@ class MigrationController extends Controller
 
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)->where('status_id', 22)->get();
 
-        info('Migrating solicitations Resposta table...');
-
+        info('Migrating solicitations Satisfacao table...');
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new Satisfacao;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
-
+            $i++;
             $solicitacao->satisfacaoResposta = MigrationController::status($solicitation->evaluation->satisfaction_status_id);
             $solicitacao->classificacaoResposta = MigrationController::status($solicitation->evaluation->attendance_status_id);
             $solicitacao->criticasSugestoes = $solicitation->evaluation->description;
@@ -160,6 +171,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateSolicitationResposta()
@@ -168,29 +181,32 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)
-            ->whereNotIn('status_id', [3, 4, 6, 7, 8, 9, 10, 11, 19, 20, 24, 25])
+            ->whereNotIn('status_id', [3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 19, 20, 24, 25])
             ->get();
 
         info('Migrating solicitations Resposta table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Resposta::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new Resposta;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
+            $i++;
 
             $solicitacao->codigoTeleconsultor = $solicitation->solicitationForward->consultant_profile_id;
             $solicitacao->solicitacaoRepetida = 0;
             $solicitacao->justificativaDevolucaoTeleconsultor = $solicitation->answers;
-            $solicitacao->solicitacaoResposta = $solicitation->answers->direct_answer;
-            $solicitacao->solicitacaoComplemento = $solicitation->answers->complement;
-            $solicitacao->solicitacaoAtributos = $solicitation->answers->attributes;
-            $solicitacao->solicitacaoEduPermanente = $solicitation->answers->permanent_education;
-            $solicitacao->solicitacaoReferencia = $solicitation->answers->references;
-            $solicitacao->estrategiaBusca = $solicitation->answers->tags;
-            $solicitacao->solsofcod = $solicitation->answers->isSOF;
+            $solicitacao->solicitacaoResposta = $solicitation->answer->direct_answer;
+            $solicitacao->solicitacaoComplemento = $solicitation->answer->complement;
+            $solicitacao->solicitacaoAtributos = $solicitation->answer->attributes;
+            $solicitacao->solicitacaoEduPermanente = $solicitation->answer->permanent_education;
+            $solicitacao->solicitacaoReferencia = $solicitation->answer->references;
+            $solicitacao->estrategiaBusca = $solicitation->answer->tags;
+            $solicitacao->solsofcod = $solicitation->answer->isSOF;
             $solicitacao->respostaAceita = 1;
 
             try {
@@ -199,6 +215,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateSolicitationRegulacao()
@@ -206,17 +224,22 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+            ->whereNotIn('status_id', [3, 6, 9, 20, 19, 25])
+            ->get();
 
         info('Migrating solicitations Regulacao table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Regulacao::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new Regulacao;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
+            $i++;
             $solicitacao->codigoRegulador = $solicitation->solicitationForward->regulator_profile_id;
             $solicitacao->aceiteTelerregulacao = 1;
 
@@ -232,6 +255,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateSolicitationEncaminhamentoPaciente()
@@ -244,19 +269,23 @@ class MigrationController extends Controller
             'patients.mother_name as mother_name',
             'patient_forwards.patient_id as patient')
             ->join('patient_forwards', 'patient_forwards.solicitation_id', '=', 'solicitations.id')
+            ->join('patients', 'patients.id', '=', 'patient_forwards.patient_id')
             ->where('solicitations.updated_at', '>=', $min_date)
             ->whereNotNull('patient_forwards.patient_id')
             ->get();
 
         info('Migrating solicitations Encaminhamento Paciente table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = SolEncaminhamentoPaciente::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new SolEncaminhamentoPaciente;
                 $solicitacao->solicitacao = $solicitation->id;
+                $j++;
             }
+            $i++;
             $solicitacao->paciente_mae = $solicitation->mother_name;
             $solicitacao->paciente_nome = $solicitation->patient->person->name;
             $solicitacao->paciente_nascimento = $solicitation->patient->person->birthday;
@@ -271,6 +300,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateSolicitationEncaminhamento()
@@ -278,25 +309,27 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::has('patientForward')->where('solicitation.updated_at', '>=', $min_date)
-            ->where()
+        $solicitations = Solicitation::has('patientForward')->where('updated_at', '>=', $min_date)
             ->get();
 
         info('Migrating solicitations Encaminhamento table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = SolEncaminhamento::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new SolEncaminhamento;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
+            $i++;
             $solicitacao->intencaoEncaminhamento = $solicitation->patientForward->has_intention;
             $solicitacao->sugestaoEncaminhamento = 0;
             $solicitacao->codigoSugestaoEncaminhamento = 0;
-            $solicitacao->cboEspecialidade = $solicitation->patientForward->cbo_id;
-            $solicitacao->evitacaoEncaminhamento = $solicitation->evaluation->avoided_forwarding;
-            $solicitacao->inducaoEncaminhamento = $solicitation->evaluation->induced_forwarding;
+            $solicitacao->cboEspecialidade = ($solicitation->patientForward != null) ? $solicitation->patientForward->cbo_id : null;
+            $solicitacao->evitacaoEncaminhamento = ($solicitation->evaluation != null) ? $solicitation->evaluation->avoided_forwarding : null;
+            $solicitacao->inducaoEncaminhamento = ($solicitation->evaluation != null) ? $solicitation->evaluation->induced_forwarding : null;
 
             try {
                 $solicitacao->save();
@@ -304,6 +337,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateSolicitationDateTimestamp()
@@ -311,17 +346,20 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get(['id', 'created_at']);
 
         info('Migrating solicitations Date Timestamp table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Solicitacao_Datas_Timestamp::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new Solicitacao_Datas_Timestamp;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
+            $i++;
             $solicitacao->soldtabertura = $solicitation->created_at;
             $solicitacao->soldtenvio = MigrationController::statusHistoryDate($solicitation->id, 6);
             $solicitacao->regdtreceb = MigrationController::statusHistoryDate($solicitation->id, 10);
@@ -340,35 +378,39 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateSolicitationDate()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
-
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get('created_at');
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get(['id', 'created_at']);
 
         info('Migrating solicitations Date table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Solicitacao_Datas::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new Solicitacao_Datas;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
+            $i++;
             $solicitacao->soldtabertura = $solicitation->created_at;
-            $solicitacao->soldtenvio = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 6)));
-            $solicitacao->regdtreceb = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 10)));
-            $solicitacao->regdtdevol = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 25)));
-            $solicitacao->regdtenvio = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 10)));
-            $solicitacao->consdtacresp = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 21)));
-            $solicitacao->consdtdevol = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 24)));
-            $solicitacao->soldtenvresp = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 5)));
-            $solicitacao->soldtsteleit = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 21)));
-            $solicitacao->soldtavalin = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 22)));
-            $solicitacao->soldtavalfim = date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 22)));
+            $solicitacao->soldtenvio = (MigrationController::statusHistoryDate($solicitation->id, 6) != NULL) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 6))) : null;
+            $solicitacao->regdtreceb = (MigrationController::statusHistoryDate($solicitation->id, 10) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 10))) : null;
+            $solicitacao->regdtdevol = (MigrationController::statusHistoryDate($solicitation->id, 25) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 25))) : null;
+            $solicitacao->regdtenvio = (MigrationController::statusHistoryDate($solicitation->id, 25) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 25))) : null;
+            $solicitacao->consdtacresp = (MigrationController::statusHistoryDate($solicitation->id, 21) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 21))) : null;
+            $solicitacao->consdtdevol = (MigrationController::statusHistoryDate($solicitation->id, 24) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 24))) : null;
+            $solicitacao->soldtenvresp = (MigrationController::statusHistoryDate($solicitation->id, 5) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 5))) : null;
+            $solicitacao->soldtsteleit = (MigrationController::statusHistoryDate($solicitation->id, 21) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 21))) : null;
+            $solicitacao->soldtavalin = (MigrationController::statusHistoryDate($solicitation->id, 22) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 22))) : null;
+            $solicitacao->soldtavalfim = (MigrationController::statusHistoryDate($solicitation->id, 22) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 22))) : null;
 
 
             try {
@@ -377,6 +419,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
 
@@ -385,23 +429,27 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+            ->whereIn('status_id', [5, 21, 22, 23])
+            ->get();
 
         info('Migrating solicitations CIAP CID table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Solicitacao_CIs::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new Solicitacao_CIs;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
-
-            $solicitacao->ciap1 = $solicitation->ciap1->code;
-            $solicitacao->ciap2 = $solicitation->ciap2->code;
-            $solicitacao->ciap3 = $solicitation->ciap3->code;
-            $solicitacao->cid1 = $solicitation->cid1->code;
-            $solicitacao->cid2 = $solicitation->cid2->code;
+            $i++;
+            $solicitacao->ciap1 = ($solicitation->ciap1 != NULL) ? $solicitation->ciap1->code : NULL;
+            $solicitacao->ciap2 = ($solicitation->ciap2 != NULL) ? $solicitation->ciap2->code : NULL;
+            $solicitacao->ciap3 = ($solicitation->ciap3 != NULL) ? $solicitation->ciap3->code : NULL;
+            $solicitacao->cid1 = ($solicitation->cid1 != NULL) ? $solicitation->cid1->code : NULL;
+            $solicitacao->cid2 = ($solicitation->cid2 != NULL) ? $solicitation->cid2->code : NULL;
 
             try {
                 $solicitacao->save();
@@ -409,6 +457,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateSolicitation()
@@ -419,15 +469,17 @@ class MigrationController extends Controller
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating solicitations table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Solicitacao::where('codigo', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new Solicitacao;
                 $solicitacao->codigo = $solicitation->id;
+                $j++;
             }
-
+            $i++;
             $solicitacao->solicitacaoTipo = ($solicitation->type_id == 52) ? 2 : 1;
             $solicitacao->solcitacao = $solicitation->description;
             $solicitacao->solicitacaoAtivo = 0;
@@ -440,6 +492,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateProfiles()
@@ -447,15 +501,17 @@ class MigrationController extends Controller
         $profiles = Profile::all();
 
         info('Migrating profiles table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($profiles as $profile) {
             $perfil = Perfil::where('codigo', '=', $profile->id)->get()->first();
 
             if ($perfil == NULL) {
                 $perfil = new Perfil;
                 $perfil->codigo = $profile->id;
+                $j++;
             }
-
+            $i++;
             $perfil->pessoa = $profile->user->person->id;
             $perfil->cbo = $profile->cbo_id;
             $perfil->tipoProfissional = 0;
@@ -478,6 +534,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
 
@@ -486,14 +544,17 @@ class MigrationController extends Controller
         $people = Person::all();
 
         info('Migrating people table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($people as $person) {
             $pessoa = Pessoa::where('cpf', '=', $person->cpf)->get()->first();
 
             if ($pessoa == NULL) {
                 $pessoa = new Pessoa;
                 $pessoa->codigo = $person->id;
+                $j++;
             }
+            $i++;
             if ($person->user != NULL) {
                 $pessoa->nome = $person->name;
                 $pessoa->sexo = ($person->sex == 'M') ? 0 : 1;
@@ -512,6 +573,8 @@ class MigrationController extends Controller
                 }
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateTeams()
@@ -519,14 +582,17 @@ class MigrationController extends Controller
         $teams = Team::all();
 
         info('Migrating teams table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($teams as $team) {
             $equipe = Equipe::where('codigo', '=', $team->id)->get()->first();
 
             if ($equipe == NULL) {
                 $equipe = new Equipe;
                 $equipe->codigo = $team->id;
+                $j++;
             }
+            $i++;
             $equipe->nome = $team->description;
             $equipe->ine = $team->ine;
 
@@ -539,6 +605,8 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 
     public function migrateUnits()
@@ -546,14 +614,17 @@ class MigrationController extends Controller
         $units = Unit::all();
 
         info('Migrating units table...');
-
+        $i = 0;
+        $j = 0;
         foreach ($units as $unit) {
             $ubs = Unidade::where('cnes', '=', $unit->cnes)->get()->first();
 
             if ($ubs == NULL) {
                 $ubs = new Unidade;
                 $ubs->codigo = $unit->id;
+                $j++;
             }
+            $i++;
             $ubs->nome = $unit->description;
             $ubs->endereco = $unit->address;
             $ubs->telefone = $unit->telphone;
@@ -566,5 +637,7 @@ class MigrationController extends Controller
                 Log::error($e->getMessage());
             }
         }
+        info($j);
+        info($i - $j);
     }
 }
