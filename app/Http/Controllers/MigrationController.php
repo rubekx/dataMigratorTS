@@ -544,12 +544,6 @@ class MigrationController extends Controller
     public function migrateUnits()
     {
         $units = Unit::all();
-        $originalQnt = Unit::count();
-
-        $saveData = True;
-        $savedQnt = 0;
-        $confirmedQtd = 0;
-        $notSaved = array();
 
         info('Migrating units table...');
 

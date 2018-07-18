@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Solicitacao_Status extends Model
 {
-  protected $connection= 'mysql2';
-  protected $table = 'tb_solicitacao_status';
+    protected $connection = 'mysql2';
+    protected $table = 'tb_solicitacao_status';
+    protected $primaryKey = 'codigo';
+    public $timestamps = false;
 }
