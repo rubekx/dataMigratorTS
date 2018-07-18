@@ -14,8 +14,7 @@ class Kernel extends ConsoleKernel
      * @var array
      */
     protected $commands = [
-        'App\Console\Commands\UpdateSolicitationsStatuses',
-        'App\Console\Commands\UpdateProfileStatuses',
+        'App\Console\Commands\MigrateDataBetweenSystems',
     ];
 
     /**
@@ -26,14 +25,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')
-        //          ->hourly();
-        $schedule->command('solicitation:update')
-                  ->hourly();
-        $schedule->command('profile:update')
-                  ->daily();
-        $schedule->command('notify:solicitant')
-                  ->daily();
+        $schedule->command('populate:smgt')
+                    ->everyTenMinutes();
     }
 
     /**
