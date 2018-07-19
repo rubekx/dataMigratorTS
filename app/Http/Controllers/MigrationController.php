@@ -87,7 +87,55 @@ class MigrationController extends Controller
     public static function status($status_id)
     {
         if (!empty($status_id)) {
-            if ($status_id == 27) {
+            if ($status_id == 1) {
+                return 1;
+            } elseif ($status_id == 2) {
+                return 0;
+            } elseif ($status_id == 3) {
+                return 1;
+            } elseif ($status_id == 4) {
+                return 2;
+            } elseif ($status_id == 5) {
+                return 3;
+            } elseif ($status_id == 6) {
+                return 4;
+            } elseif ($status_id == 7) {
+                return 5;
+            } elseif ($status_id == 8) {
+                return 6;
+            } elseif ($status_id == 9) {
+                return 7;
+            } elseif ($status_id == 10) {
+                return 8;
+            } elseif ($status_id == 11) {
+                return 9;
+            } elseif ($status_id == 12) {
+                return 10;
+            } elseif ($status_id == 13) {
+                return 11;
+            } elseif ($status_id == 14) {
+                return 12;
+            } elseif ($status_id == 15) {
+                return 13;
+            } elseif ($status_id == 16) {
+                return 14;
+            } elseif ($status_id == 18) {
+                return 16;
+            } elseif ($status_id == 19) {
+                return 17;
+            } elseif ($status_id == 20) {
+                return 18;
+            } elseif ($status_id == 21) {
+                return 19;
+            } elseif ($status_id == 22) {
+                return 20;
+            } elseif ($status_id == 23) {
+                return 21;
+            } elseif ($status_id == 24) {
+                return 4;
+            } elseif ($status_id == 25) {
+                return 1;
+            } elseif ($status_id == 27) {
                 return 1;
             } elseif ($status_id == 28) {
                 return 2;
@@ -158,7 +206,7 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
-            $solicitacao->situacaoTeleconsultoria = $solicitation->status_id;
+            $solicitacao->situacaoTeleconsultoria = MigrationController::status($solicitation->status_id);
             $solicitacao->atrasoForaLimite = 0;
             $solicitacao->atrasoEtapa = ($solicitation->status_id == 7 || $solicitation->status_id == 9 || $solicitation->status_id == 11 || $solicitation->status_id == 13) ? 1 : 0;
 
