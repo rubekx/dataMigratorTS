@@ -25,8 +25,8 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('populate:smgt')
-        //             ->everyTenMinutes();
+        $schedule->command('populate:smgt')
+                    ->everyTenMinutes();
     }
 
     /**
