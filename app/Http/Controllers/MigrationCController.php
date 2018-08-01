@@ -48,18 +48,19 @@ use App\Evaluation;
 use App\StatusHistory;
 
 /**
- * Class MigrationController
+ * Class MigrationCController
  * @package App\Http\Controllers
  */
-class MigrationController extends Controller
+class MigrationCController extends Controller
 {
+
 
     /**
      *
      */
     public static function populateDatabase()
     {
-        $controller = new MigrationController;
+        $controller = new MigrationCController;
         info('Start migration data to SMGT...');
         $controller->migrateUnits();
         $controller->migrateTeams();
@@ -228,7 +229,7 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
-            $solicitacao->situacaoTeleconsultoria = MigrationController::status($solicitation->status_id);
+            $solicitacao->situacaoTeleconsultoria = MigrationCController::status($solicitation->status_id);
             $solicitacao->atrasoForaLimite = 0;
             $solicitacao->atrasoEtapa = ($solicitation->status_id == 7 || $solicitation->status_id == 9 || $solicitation->status_id == 11 || $solicitation->status_id == 13) ? 1 : 0;
 
@@ -264,8 +265,8 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
-            $solicitacao->satisfacaoResposta = MigrationController::status($solicitation->evaluation->satisfaction_status_id);
-            $solicitacao->classificacaoResposta = MigrationController::status($solicitation->evaluation->attendance_status_id);
+            $solicitacao->satisfacaoResposta = MigrationCController::status($solicitation->evaluation->satisfaction_status_id);
+            $solicitacao->classificacaoResposta = MigrationCController::status($solicitation->evaluation->attendance_status_id);
             $solicitacao->criticasSugestoes = $solicitation->evaluation->description;
             $solicitacao->evitacaoEncaminhamento = $solicitation->evaluation->avoided_forwarding;
             $solicitacao->inducaoEncaminhamento = $solicitation->evaluation->induced_forwarding;
@@ -481,16 +482,16 @@ class MigrationController extends Controller
             }
             $i++;
             $solicitacao->soldtabertura = $solicitation->created_at;
-            $solicitacao->soldtenvio = MigrationController::statusHistoryDate($solicitation->id, 6);
-            $solicitacao->regdtreceb = MigrationController::statusHistoryDate($solicitation->id, 10);
-            $solicitacao->regdtdevol = MigrationController::statusHistoryDate($solicitation->id, 25);
-            $solicitacao->regdtenvio = MigrationController::statusHistoryDate($solicitation->id, 10);
-            $solicitacao->consdtacresp = MigrationController::statusHistoryDate($solicitation->id, 21);
-            $solicitacao->consdtdevol = MigrationController::statusHistoryDate($solicitation->id, 24);
-            $solicitacao->soldtenvresp = MigrationController::statusHistoryDate($solicitation->id, 5);
-            $solicitacao->soldtsteleit = MigrationController::statusHistoryDate($solicitation->id, 21);
-            $solicitacao->soldtavalin = MigrationController::statusHistoryDate($solicitation->id, 22);
-            $solicitacao->soldtavalfim = MigrationController::statusHistoryDate($solicitation->id, 22);
+            $solicitacao->soldtenvio = MigrationCController::statusHistoryDate($solicitation->id, 6);
+            $solicitacao->regdtreceb = MigrationCController::statusHistoryDate($solicitation->id, 10);
+            $solicitacao->regdtdevol = MigrationCController::statusHistoryDate($solicitation->id, 25);
+            $solicitacao->regdtenvio = MigrationCController::statusHistoryDate($solicitation->id, 10);
+            $solicitacao->consdtacresp = MigrationCController::statusHistoryDate($solicitation->id, 21);
+            $solicitacao->consdtdevol = MigrationCController::statusHistoryDate($solicitation->id, 24);
+            $solicitacao->soldtenvresp = MigrationCController::statusHistoryDate($solicitation->id, 5);
+            $solicitacao->soldtsteleit = MigrationCController::statusHistoryDate($solicitation->id, 21);
+            $solicitacao->soldtavalin = MigrationCController::statusHistoryDate($solicitation->id, 22);
+            $solicitacao->soldtavalfim = MigrationCController::statusHistoryDate($solicitation->id, 22);
 
             try {
                 $solicitacao->save();
@@ -524,16 +525,16 @@ class MigrationController extends Controller
             }
             $i++;
             $solicitacao->soldtabertura = $solicitation->created_at;
-            $solicitacao->soldtenvio = (MigrationController::statusHistoryDate($solicitation->id, 6) != NULL) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 6))) : null;
-            $solicitacao->regdtreceb = (MigrationController::statusHistoryDate($solicitation->id, 10) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 10))) : null;
-            $solicitacao->regdtdevol = (MigrationController::statusHistoryDate($solicitation->id, 25) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 25))) : null;
-            $solicitacao->regdtenvio = (MigrationController::statusHistoryDate($solicitation->id, 25) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 25))) : null;
-            $solicitacao->consdtacresp = (MigrationController::statusHistoryDate($solicitation->id, 21) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 21))) : null;
-            $solicitacao->consdtdevol = (MigrationController::statusHistoryDate($solicitation->id, 24) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 24))) : null;
-            $solicitacao->soldtenvresp = (MigrationController::statusHistoryDate($solicitation->id, 5) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 5))) : null;
-            $solicitacao->soldtsteleit = (MigrationController::statusHistoryDate($solicitation->id, 21) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 21))) : null;
-            $solicitacao->soldtavalin = (MigrationController::statusHistoryDate($solicitation->id, 22) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 22))) : null;
-            $solicitacao->soldtavalfim = (MigrationController::statusHistoryDate($solicitation->id, 22) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 22))) : null;
+            $solicitacao->soldtenvio = (MigrationCController::statusHistoryDate($solicitation->id, 6) != NULL) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 6))) : null;
+            $solicitacao->regdtreceb = (MigrationCController::statusHistoryDate($solicitation->id, 10) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 10))) : null;
+            $solicitacao->regdtdevol = (MigrationCController::statusHistoryDate($solicitation->id, 25) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 25))) : null;
+            $solicitacao->regdtenvio = (MigrationCController::statusHistoryDate($solicitation->id, 25) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 25))) : null;
+            $solicitacao->consdtacresp = (MigrationCController::statusHistoryDate($solicitation->id, 21) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 21))) : null;
+            $solicitacao->consdtdevol = (MigrationCController::statusHistoryDate($solicitation->id, 24) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 24))) : null;
+            $solicitacao->soldtenvresp = (MigrationCController::statusHistoryDate($solicitation->id, 5) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 5))) : null;
+            $solicitacao->soldtsteleit = (MigrationCController::statusHistoryDate($solicitation->id, 21) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 21))) : null;
+            $solicitacao->soldtavalin = (MigrationCController::statusHistoryDate($solicitation->id, 22) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 22))) : null;
+            $solicitacao->soldtavalfim = (MigrationCController::statusHistoryDate($solicitation->id, 22) != null) ? date('Y-m-d', strtotime(MigrationCController::statusHistoryDate($solicitation->id, 22))) : null;
 
 
             try {
