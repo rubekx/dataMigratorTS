@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-use App\Http\Controllers\MigrationMController;
+use App\Http\Controllers\MigrationController;
 
 class MigrateDataBetweenSystems extends Command
 {
