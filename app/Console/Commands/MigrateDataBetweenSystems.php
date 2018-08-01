@@ -4,7 +4,7 @@ namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
 
-use App\Http\Controllers\MigrationController;
+use App\Http\Controllers\MigrationMController;
 
 class MigrateDataBetweenSystems extends Command
 {
@@ -39,7 +39,7 @@ class MigrateDataBetweenSystems extends Command
      */
     public function handle()
     {
-        $controller = new MigrationController;
+        $controller = new MigrationMController;
         $controller->populateDatabase();
     }
 }

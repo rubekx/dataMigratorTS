@@ -4,7 +4,7 @@ use Illuminate\Database\Seeder;
 
 use Illuminate\Support\Facades\File;
 
-use App\Http\Controllers\MigrationController;
+use App\Http\Controllers\MigrationMController;
 
 class DatabaseSeeder extends Seeder
 {
@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         DB::unprepared(File::get(base_path() . '/tmp/roles.sql'));
         DB::unprepared(File::get(base_path() . '/tmp/types.sql'));
 
-        MigrationController::populateDatabase();
+        MigrationMController::populateDatabase();
     }
 }
 //
