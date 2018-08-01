@@ -39,7 +39,7 @@ class MigrateDataBetweenSystems extends Command
      */
     public function handle()
     {
-        $controller = new MigrationMController;
+        $controller = new MigrationController;
         $controller->populateDatabase();
     }
 }
