@@ -351,6 +351,7 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
+            info($solicitation->id);
             $solicitacao->codigoRegulador = $solicitation->solicitationForward->regulator_profile_id;
             $solicitacao->aceiteTelerregulacao = 1;
 
@@ -392,7 +393,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            $solicitacao = SolEncaminhamentoPaciente::where('codigo', '=', $solicitation->id)->get()->first();
+            $solicitacao = SolEncaminhamentoPaciente::where('solicitacao', '=', $solicitation->id)->get()->first();
 
             if ($solicitacao == NULL) {
                 $solicitacao = new SolEncaminhamentoPaciente;
@@ -656,7 +657,9 @@ class MigrationController extends Controller
             } else {
                 $perfil->atuacao = $profile->role_id;
             }
+            
             $perfil->ativo = ($profile->status_id == 1) ? 1 : 0;
+            
             $perfil->equipe = ($profile->role_id == 7) ? $profile->profile_team->team_id : 0;
             $perfil->dataAtualizacao = date('Y-m-d');
 
