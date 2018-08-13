@@ -401,12 +401,12 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
-            $solicitacao->paciente_mae = $solicitation->mother_name;
-            $solicitacao->paciente_nome = $solicitation->patient->person->name;
-            $solicitacao->paciente_nascimento = $solicitation->patient->person->birthday;
-            $solicitacao->paciente_sexo = ($solicitation->patient->person->sex == 'F') ? 1 : 0;
-            $solicitacao->paciente_cpf = $solicitation->patient->person->cpf;
-            $solicitacao->paciente_cns = $solicitation->cns;
+            $solicitacao->paciente_mae = $solicitation->patientForward->patient->mother_name;
+            $solicitacao->paciente_nome = $solicitation->patientForward->patient->person->name;
+            $solicitacao->paciente_nascimento = $solicitation->patientForward->patient->person->birthday;
+            $solicitacao->paciente_sexo = ($solicitation->patientForward->patient->person->sex == 'F') ? 1 : 0;
+            $solicitacao->paciente_cpf = $solicitation->patientForward->patient->person->cpf;
+            $solicitacao->paciente_cns = $solicitation->patientForward->patient->cns;
 
             try {
 
