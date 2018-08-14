@@ -189,7 +189,7 @@ class MigrationController extends Controller
         $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Solcod_Ibge::where('codigo', '=', $solicitation->id)->get()->first();
-            info($solicitation->id);
+//            info($solicitation->id);
             if ($solicitacao == NULL) {
                 $solicitacao = new Solcod_Ibge;
                 $solicitacao->codigo = $solicitation->id;
@@ -257,7 +257,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            info($solicitation->id);
+//            info($solicitation->id);
             if (Evaluation::where('solicitation_id', '=', $solicitation->id)->exists()) {
                 $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
 
@@ -354,7 +354,7 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
-            info($solicitation->id);
+//            info($solicitation->id);
             $solicitacao->codigoRegulador = $solicitation->solicitationForward->regulator_profile_id;
             $solicitacao->aceiteTelerregulacao = 1;
 
