@@ -181,7 +181,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
             ->get();
 
         info('Migrating solicitations SolcodIbge table...');
@@ -189,6 +189,7 @@ class MigrationController extends Controller
         $j = 0;
         foreach ($solicitations as $solicitation) {
             $solicitacao = Solcod_Ibge::where('codigo', '=', $solicitation->id)->get()->first();
+            info($solicitation->id);
             if ($solicitacao == NULL) {
                 $solicitacao = new Solcod_Ibge;
                 $solicitacao->codigo = $solicitation->id;
@@ -214,7 +215,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get();
 
         info('Migrating solicitations Status table...');
         $i = 0;
@@ -250,30 +251,32 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->where('status_id', 22)->get();
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)->where('status_id', 22)->get();
 
         info('Migrating solicitations Satisfacao table...');
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
+            info($solicitation->id);
+            if (Evaluation::where('solicitation_id', '=', $solicitation->id)->exists()) {
+                $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
 
-            if ($solicitacao == NULL) {
-                $solicitacao = new Satisfacao;
-                $solicitacao->codigo = $solicitation->id;
-                $j++;
-            }
-            $i++;
-            $solicitacao->satisfacaoResposta = MigrationController::status($solicitation->evaluation->satisfaction_status_id);
-            $solicitacao->classificacaoResposta = MigrationController::status($solicitation->evaluation->attendance_status_id);
-            $solicitacao->criticasSugestoes = $solicitation->evaluation->description;
-            $solicitacao->evitacaoEncaminhamento = $solicitation->evaluation->avoided_forwarding;
-            $solicitacao->inducaoEncaminhamento = $solicitation->evaluation->induced_forwarding;
-
-            try {
-                $solicitacao->save();
-            } catch (\Exception $e) {
-                Log::error($e->getMessage());
+                if ($solicitacao == NULL) {
+                    $solicitacao = new Satisfacao;
+                    $solicitacao->codigo = $solicitation->id;
+                    $j++;
+                }
+                $i++;
+                $solicitacao->satisfacaoResposta = MigrationController::status($solicitation->evaluation->satisfaction_status_id);
+                $solicitacao->classificacaoResposta = MigrationController::status($solicitation->evaluation->attendance_status_id);
+                $solicitacao->criticasSugestoes = $solicitation->evaluation->description;
+                $solicitacao->evitacaoEncaminhamento = $solicitation->evaluation->avoided_forwarding;
+                $solicitacao->inducaoEncaminhamento = $solicitation->evaluation->induced_forwarding;
+                try {
+                    $solicitacao->save();
+                } catch (\Exception $e) {
+                    Log::error($e->getMessage());
+                }
             }
         }
         info($j);
@@ -288,8 +291,8 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
-            ->whereNotIn('status_id', [3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 19, 20, 24, 25])
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('status_id', [3, 4, 6, 7, 8, 9, 19, 20, 24, 25])
             ->get();
 
         info('Migrating solicitations Resposta table...');
@@ -307,14 +310,14 @@ class MigrationController extends Controller
 
             $solicitacao->codigoTeleconsultor = $solicitation->solicitationForward->consultant_profile_id;
             $solicitacao->solicitacaoRepetida = 0;
-            $solicitacao->justificativaDevolucaoTeleconsultor = $solicitation->answers;
-            $solicitacao->solicitacaoResposta = $solicitation->answer->direct_answer;
-            $solicitacao->solicitacaoComplemento = $solicitation->answer->complement;
-            $solicitacao->solicitacaoAtributos = $solicitation->answer->attributes;
-            $solicitacao->solicitacaoEduPermanente = $solicitation->answer->permanent_education;
-            $solicitacao->solicitacaoReferencia = $solicitation->answer->references;
-            $solicitacao->estrategiaBusca = $solicitation->answer->tags;
-            $solicitacao->solsofcod = $solicitation->answer->isSOF;
+            $solicitacao->justificativaDevolucaoTeleconsultor = NULL;
+            $solicitacao->solicitacaoResposta = $solicitation->answer != NULL ? $solicitation->answer->direct_answer : NULL;
+            $solicitacao->solicitacaoComplemento = $solicitation->answer != NULL ? $solicitation->answer->complement : NULL;
+            $solicitacao->solicitacaoAtributos = $solicitation->answer != NULL ? $solicitation->answer->attributes : NULL;
+            $solicitacao->solicitacaoEduPermanente = $solicitation->answer != NULL ? $solicitation->answer->permanent_education : NULL;
+            $solicitacao->solicitacaoReferencia = $solicitation->answer != NULL ? $solicitation->answer->references : NULL;
+            $solicitacao->estrategiaBusca = $solicitation->answer != NULL ? $solicitation->answer->tags : NULL;
+            $solicitacao->solsofcod = $solicitation->answer != NULL ? $solicitation->answer->isSOF : NULL;
             $solicitacao->respostaAceita = 1;
 
             try {
@@ -335,7 +338,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
             ->whereNotIn('status_id', [3, 6, 9, 20, 19, 25])
             ->get();
 
@@ -379,15 +382,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::select(
-            'patients.cns as cns',
-            'patients.mother_name as mother_name',
-            'patient_forwards.patient_id as patient')
-            ->join('patient_forwards', 'patient_forwards.solicitation_id', '=', 'solicitations.id')
-            ->join('patients', 'patients.id', '=', 'patient_forwards.patient_id')
-            ->where('solicitations.updated_at', '>=', $min_date)
-            ->whereNotNull('patient_forwards.patient_id')
-            ->get();
+        $solicitations = Solicitation::has('patientForward')->where('created_at', '>=', $min_date);
 
         info('Migrating solicitations Encaminhamento Paciente table...');
         $i = 0;
@@ -427,7 +422,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::has('patientForward')->where('updated_at', '>=', $min_date)
+        $solicitations = Solicitation::has('patientForward')->where('created_at', '>=', $min_date)
             ->get();
 
         info('Migrating solicitations Encaminhamento table...');
@@ -467,7 +462,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get(['id', 'created_at']);
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get(['id', 'created_at']);
 
         info('Migrating solicitations Date Timestamp table...');
         $i = 0;
@@ -510,7 +505,7 @@ class MigrationController extends Controller
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get(['id', 'created_at']);
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get(['id', 'created_at']);
 
         info('Migrating solicitations Date table...');
         $i = 0;
@@ -556,7 +551,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
             ->whereIn('status_id', [5, 21, 22, 23])
             ->get();
 
@@ -596,7 +591,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('updated_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get();
 
         info('Migrating solicitations table...');
         $i = 0;
@@ -657,9 +652,9 @@ class MigrationController extends Controller
             } else {
                 $perfil->atuacao = $profile->role_id;
             }
-            
+
             $perfil->ativo = ($profile->status_id == 1) ? 1 : 0;
-            
+
             $perfil->equipe = ($profile->role_id == 7) ? $profile->profile_team->team_id : 0;
             $perfil->dataAtualizacao = date('Y-m-d');
 
