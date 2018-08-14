@@ -25,6 +25,7 @@ use App\Dash\SolEncaminhamento;
 use App\Dash\Satisfacao;
 use App\Dash\StatusSolicitacao;
 use App\Dash\Solcod_Ibge;
+use App\Dash\SmgtUpdates;
 
 use App\Person;
 use App\User;
@@ -59,25 +60,99 @@ class MigrationController extends Controller
      */
     public static function populateDatabase()
     {
+        $add = 0;
+        $upd = 0;
         $controller = new MigrationController;
         info('Start migration data to SMGT...');
-        $controller->migrateUnits();
-        $controller->migrateTeams();
-        $controller->migratePeople();
-        $controller->migrateProfiles();
-        $controller->migrateSolicitation();
-        $controller->migrateSolicitationCiapCid();
-        $controller->migrateSolicitationDate();
-        $controller->migrateSolicitationDateTimestamp();
-        $controller->migrateSolicitationEncaminhamento();
-        $controller->migrateSolicitationEncaminhamentoPaciente();
-        $controller->migrateSolicitationRegulacao();
-        $controller->migrateSolicitationResposta();
-        $controller->migrateSolicitationSatisfacao();
-        $controller->migrateSolicitationStatus();
-        $controller->migrateSolicitationSolcodIbge();
+        $date = date('Y-m-d H:i:s');
 
+        $arr = $controller->migrateUnits();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateTeams();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migratePeople();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateProfiles();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        MigrationController::smgtUpdates(2, $date, $add, $upd);
+
+        $add = 0;
+        $upd = 0;
+        $date = date('Y-m-d H:i:s');
+
+        $arr = $controller->migrateSolicitation();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationCiapCid();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationDate();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationDateTimestamp();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationEncaminhamento();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationEncaminhamentoPaciente();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationRegulacao();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationResposta();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationSatisfacao();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationStatus();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        $arr = $controller->migrateSolicitationSolcodIbge();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
+        MigrationController::smgtUpdates(1, $date, $add, $upd);
         info('Done!');
+    }
+
+    public static function smgtUpdates($t, $date, $add, $upd)
+    {
+        $atualizacao = new SmgtUpdates;
+        if ($t == 1) {
+            $atualizacao->tabela = 1;
+        } else {
+            $atualizacao->tabela = 2;
+        }
+        $atualizacao->usuario = 7;
+        $atualizacao->tempoInicio = $date;
+        $atualizacao->tempoFim = date('Y-m-d H:i:s');
+        $atualizacao->registroAdicionado = $add;
+        $atualizacao->registroAtualizado = $upd;
+        $atualizacao->registroIgnorado = 0;
+        $atualizacao->status = 1;
+        $atualizacao->log = 'sucesso';
+        $atualizacao->save();
     }
 
     /**
@@ -205,6 +280,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -241,6 +317,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -281,6 +358,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -328,6 +406,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -372,6 +451,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -412,6 +492,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -452,6 +533,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -496,6 +578,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -540,6 +623,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
 
@@ -581,6 +665,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -619,6 +704,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -626,7 +712,9 @@ class MigrationController extends Controller
      */
     public function migrateProfiles()
     {
-        $profiles = Profile::all();
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+        $profiles = Profile::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating profiles table...');
         $i = 0;
@@ -666,6 +754,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
 
@@ -674,7 +763,9 @@ class MigrationController extends Controller
      */
     public function migratePeople()
     {
-        $people = Person::all();
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+        $people = Person::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating people table...');
         $i = 0;
@@ -692,7 +783,7 @@ class MigrationController extends Controller
                 $pessoa->nome = $person->name;
                 $pessoa->sexo = ($person->sex == 'M') ? 0 : 1;
                 $pessoa->nascimento = $person->birthday;
-                $pessoa->telefone = $person->telphone;
+                $pessoa->telefone = $person->celphone;
                 $pessoa->celular = $person->celphone;
                 $pessoa->email = $person->user->email;
                 $pessoa->cpf = $person->cpf;
@@ -708,6 +799,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -715,7 +807,9 @@ class MigrationController extends Controller
      */
     public function migrateTeams()
     {
-        $teams = Team::all();
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+        $teams = Team::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating teams table...');
         $i = 0;
@@ -743,6 +837,7 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 
     /**
@@ -750,7 +845,9 @@ class MigrationController extends Controller
      */
     public function migrateUnits()
     {
-        $units = Unit::all();
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+        $units = Unit::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating units table...');
         $i = 0;
@@ -778,5 +875,6 @@ class MigrationController extends Controller
         }
         info($j);
         info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
     }
 }
