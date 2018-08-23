@@ -163,7 +163,7 @@ class MigrationController extends Controller
     public static function statusHistoryDate($solicitation_id, $status_id)
     {
         if (!empty($solicitation_id) && !empty($status_id)) {
-            $statusHistoryDate = StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get(['created_at'])->first();
+            $statusHistoryDate = StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get(['created_at'])->last();
             if ($statusHistoryDate) {
                 return $statusHistoryDate['created_at'];
             }
@@ -558,7 +558,7 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
-            $solicitacao->soldtabertura = $solicitation->created_at;
+            $solicitacao->soldtabertura = MigrationController::statusHistoryDate($solicitation->id, 6);
             $solicitacao->soldtenvio = MigrationController::statusHistoryDate($solicitation->id, 6);
             $solicitacao->regdtreceb = MigrationController::statusHistoryDate($solicitation->id, 10);
             $solicitacao->regdtdevol = MigrationController::statusHistoryDate($solicitation->id, 25);
@@ -602,7 +602,7 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
-            $solicitacao->soldtabertura = $solicitation->created_at;
+            $solicitacao->soldtabertura = (MigrationController::statusHistoryDate($solicitation->id, 6) != NULL) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 6))) : null;
             $solicitacao->soldtenvio = (MigrationController::statusHistoryDate($solicitation->id, 6) != NULL) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 6))) : null;
             $solicitacao->regdtreceb = (MigrationController::statusHistoryDate($solicitation->id, 10) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 10))) : null;
             $solicitacao->regdtdevol = (MigrationController::statusHistoryDate($solicitation->id, 25) != null) ? date('Y-m-d', strtotime(MigrationController::statusHistoryDate($solicitation->id, 25))) : null;
