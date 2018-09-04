@@ -743,7 +743,7 @@ class MigrationController extends Controller
 
             $perfil->ativo = ($profile->status_id == 1) ? 1 : 0;
 
-            $perfil->equipe = ($profile->role_id == 7) ? $profile->profile_team->team_id : 0;
+            $perfil->equipe = ($profile->role_id == 7 || $profile->role_id == 5) ? $profile->profile_team->team_id : 0;
             $perfil->dataAtualizacao = date('Y-m-d');
 
             try {
@@ -858,6 +858,7 @@ class MigrationController extends Controller
             if ($ubs == NULL) {
                 $ubs = new Unidade;
                 $ubs->codigo = $unit->id;
+                $ubs->cnes = $unit->cnes;
                 $j++;
             }
             $i++;
