@@ -858,10 +858,10 @@ class MigrationController extends Controller
             if ($ubs == NULL) {
                 $ubs = new Unidade;
                 $ubs->codigo = $unit->id;
-                $ubs->cnes = $unit->cnes;
                 $j++;
             }
             $i++;
+            $ubs->cnes = $unit->cnes;
             $ubs->nome = $unit->description;
             $ubs->endereco = $unit->address;
             $ubs->telefone = $unit->telphone;
