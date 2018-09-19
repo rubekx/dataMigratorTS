@@ -18,9 +18,14 @@ class Answer extends Model
         return $this->belongsTo('App\Profile');
     }
 
-
     public function hashId()
     {
         return Hashids::encode($this->id);
     }
+
+    public function solicitationBySearch()
+    {
+        return $this->hasOne('App\SolicitationBySearch');
+    }
+
 }

@@ -385,18 +385,32 @@ class MigrationController extends Controller
                 $j++;
             }
             $i++;
-
-            $solicitacao->codigoTeleconsultor = $solicitation->solicitationForward->consultant_profile_id;
-            $solicitacao->solicitacaoRepetida = 0;
-            $solicitacao->justificativaDevolucaoTeleconsultor = NULL;
-            $solicitacao->solicitacaoResposta = $solicitation->answer != NULL ? $solicitation->answer->direct_answer : NULL;
-            $solicitacao->solicitacaoComplemento = $solicitation->answer != NULL ? $solicitation->answer->complement : NULL;
-            $solicitacao->solicitacaoAtributos = $solicitation->answer != NULL ? $solicitation->answer->attributes : NULL;
-            $solicitacao->solicitacaoEduPermanente = $solicitation->answer != NULL ? $solicitation->answer->permanent_education : NULL;
-            $solicitacao->solicitacaoReferencia = $solicitation->answer != NULL ? $solicitation->answer->references : NULL;
-            $solicitacao->estrategiaBusca = $solicitation->answer != NULL ? $solicitation->answer->tags : NULL;
-            $solicitacao->solsofcod = $solicitation->answer != NULL ? $solicitation->answer->isSOF : NULL;
-            $solicitacao->respostaAceita = 1;
+//            info($solicitation->id);
+            if ($solicitation->type_id == 53) {
+                $solicitacao->codigoTeleconsultor = 276851;
+                $solicitacao->solicitacaoRepetida = 0;
+                $solicitacao->justificativaDevolucaoTeleconsultor = NULL;
+                $solicitacao->solicitacaoResposta = $solicitation->solicitationBySearch != NULL ? $solicitation->solicitationBySearch->answer->direct_answer : NULL;
+                $solicitacao->solicitacaoComplemento = $solicitation->solicitationBySearch != NULL ? $solicitation->solicitationBySearch->answer->complement : NULL;
+                $solicitacao->solicitacaoAtributos = $solicitation->solicitationBySearch != NULL ? $solicitation->solicitationBySearch->answer->attributes : NULL;
+                $solicitacao->solicitacaoEduPermanente = $solicitation->solicitationBySearch != NULL ? $solicitation->solicitationBySearch->answer->permanent_education : NULL;
+                $solicitacao->solicitacaoReferencia = $solicitation->solicitationBySearch != NULL ? $solicitation->solicitationBySearch->answer->references : NULL;
+                $solicitacao->estrategiaBusca = $solicitation->solicitationBySearch != NULL ? $solicitation->solicitationBySearch->answer->tags : NULL;
+                $solicitacao->solsofcod = $solicitation->solicitationBySearch != NULL ? $solicitation->solicitationBySearch->answer->isSOF : NULL;
+                $solicitacao->respostaAceita = 1;
+            } else {
+                $solicitacao->codigoTeleconsultor = $solicitation->solicitationForward->consultant_profile_id;
+                $solicitacao->solicitacaoRepetida = 0;
+                $solicitacao->justificativaDevolucaoTeleconsultor = NULL;
+                $solicitacao->solicitacaoResposta = $solicitation->answer != NULL ? $solicitation->answer->direct_answer : NULL;
+                $solicitacao->solicitacaoComplemento = $solicitation->answer != NULL ? $solicitation->answer->complement : NULL;
+                $solicitacao->solicitacaoAtributos = $solicitation->answer != NULL ? $solicitation->answer->attributes : NULL;
+                $solicitacao->solicitacaoEduPermanente = $solicitation->answer != NULL ? $solicitation->answer->permanent_education : NULL;
+                $solicitacao->solicitacaoReferencia = $solicitation->answer != NULL ? $solicitation->answer->references : NULL;
+                $solicitacao->estrategiaBusca = $solicitation->answer != NULL ? $solicitation->answer->tags : NULL;
+                $solicitacao->solsofcod = $solicitation->answer != NULL ? $solicitation->answer->isSOF : NULL;
+                $solicitacao->respostaAceita = 1;
+            }
 
             try {
                 $solicitacao->save();
@@ -434,15 +448,19 @@ class MigrationController extends Controller
             }
             $i++;
 //            info($solicitation->id);
-            $solicitacao->codigoRegulador = $solicitation->solicitationForward->regulator_profile_id;
-            $solicitacao->aceiteTelerregulacao = 1;
-
-            if ($solicitacao->status_id == 20 || $solicitacao->status_id == 25) {
-                $solicitacao->justificativaDevCan = $solicitation->observation->description;
-            } else {
+            if ($solicitation->type_id == 52) {
+                $solicitacao->codigoRegulador = $solicitation->solicitationForward->regulator_profile_id;
+                $solicitacao->aceiteTelerregulacao = 1;
+                if ($solicitacao->status_id == 20 || $solicitacao->status_id == 25) {
+                    $solicitacao->justificativaDevCan = $solicitation->observation->description;
+                } else {
+                    $solicitacao->justificativaDevCan = null;
+                }
+            } elseif ($solicitation->type_id == 53) {
+                $solicitacao->codigoRegulador = 276852;
+                $solicitacao->aceiteTelerregulacao = 1;
                 $solicitacao->justificativaDevCan = null;
             }
-
             try {
                 $solicitacao->save();
             } catch (\Exception $e) {
