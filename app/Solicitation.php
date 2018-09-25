@@ -48,6 +48,11 @@ class Solicitation extends Model
         return $this->hasOne('App\SolicitationForward');
     }
 
+    public function lastestSolicitationForward()
+    {
+        return $this->hasOne('App\SolicitationForward')->latest();
+    }
+
     public function ciap1()
     {
         return $this->belongsTo('App\CIAP',  'ciap1_id');
