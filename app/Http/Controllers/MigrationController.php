@@ -562,7 +562,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get(['id', 'created_at', 'status_id','type_id']);
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get(['id', 'created_at', 'status_id', 'type_id']);
 
         info('Migrating solicitations Date Timestamp table...');
         $i = 0;
@@ -593,15 +593,15 @@ class MigrationController extends Controller
                 if ($solicitation->type_id == 53) {
                     $solicitacao->soldtabertura = $solicitation->created_at;
                     $solicitacao->soldtenvio = $solicitation->created_at;
-                    $solicitacao->regdtreceb = $solicitation->created_at;
+                    $solicitacao->regdtreceb = date('Y-m-d H:i:s',strtotime("+1 minutes", strtotime($solicitation->created_at)));
                     $solicitacao->regdtdevol = null;
-                    $solicitacao->regdtenvio = $solicitation->created_at;
-                    $solicitacao->consdtacresp = $solicitation->created_at;
+                    $solicitacao->regdtenvio = date('Y-m-d H:i:s',strtotime("+2 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->consdtacresp = date('Y-m-d H:i:s',strtotime("+3 minutes", strtotime($solicitation->created_at)));
                     $solicitacao->consdtdevol = null;
-                    $solicitacao->soldtenvresp = $solicitation->created_at;
-                    $solicitacao->soldtsteleit = $solicitation->created_at;
-                    $solicitacao->soldtavalin = $solicitation->created_at;
-                    $solicitacao->soldtavalfim = $solicitation->created_at;
+                    $solicitacao->soldtenvresp = date('Y-m-d H:i:s',strtotime("+4 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->soldtsteleit = date('Y-m-d H:i:s',strtotime("+5 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->soldtavalin = date('Y-m-d H:i:s',strtotime("+6 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->soldtavalfim = date('Y-m-d H:i:s',strtotime("+6 minutes", strtotime($solicitation->created_at)));
                 } else {
                     $solicitacao->soldtabertura = MigrationController::statusHistoryDate($solicitation->id, 6);
                     $solicitacao->soldtenvio = MigrationController::statusHistoryDate($solicitation->id, 6);
@@ -634,7 +634,7 @@ class MigrationController extends Controller
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
-        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get(['id', 'created_at', 'status_id','type_id']);
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get(['id', 'created_at', 'status_id', 'type_id']);
 
         info('Migrating solicitations Date table...');
         $i = 0;
