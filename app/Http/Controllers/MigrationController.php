@@ -26,6 +26,7 @@ use App\Dash\Satisfacao;
 use App\Dash\StatusSolicitacao;
 use App\Dash\Solcod_Ibge;
 use App\Dash\SmgtUpdates;
+use App\Dash\Solcitacao_Tempo;
 
 use App\Person;
 use App\User;
@@ -100,6 +101,10 @@ class MigrationController extends Controller
         $add = $add + $arr['add'];
         $upd = $upd + $arr['upd'];
 
+        $arr = $controller->migrateSolicitationTempo();
+        $add = $add + $arr['add'];
+        $upd = $upd + $arr['upd'];
+
         $arr = $controller->migrateSolicitationDateTimestamp();
         $add = $add + $arr['add'];
         $upd = $upd + $arr['upd'];
@@ -136,6 +141,12 @@ class MigrationController extends Controller
         info('Done!');
     }
 
+    /**
+     * @param $t
+     * @param $date
+     * @param $add
+     * @param $upd
+     */
     public static function smgtUpdates($t, $date, $add, $upd)
     {
         $atualizacao = new SmgtUpdates;
@@ -163,6 +174,22 @@ class MigrationController extends Controller
     public static function statusHistoryDate($solicitation_id, $status_id)
     {
         if (!empty($solicitation_id) && !empty($status_id)) {
+            $statusHistoryDate = StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get(['created_at'])->last();
+            if ($statusHistoryDate) {
+                return $statusHistoryDate['created_at'];
+            }
+        }
+        return null;
+    }
+
+    public static function statusHistoryDateLate($solicitation_id, $status_id)
+    {
+        if (!empty($solicitation_id) && !empty($status_id)) {
+            if (in_array($status_id, [8, 10, 12])) {
+                if (StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->doesntExist()) {
+                    $status_id = $status_id + 1;
+                }
+            }
             $statusHistoryDate = StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get(['created_at'])->last();
             if ($statusHistoryDate) {
                 return $statusHistoryDate['created_at'];
@@ -557,6 +584,86 @@ class MigrationController extends Controller
     /**
      *
      */
+    public function migrateSolicitationTempo()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-120 days', $today));
+
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)->whereNotIn('status_id', [3, 4, 24, 25, 20])->get(['id', 'created_at', 'status_id', 'type_id']);
+
+        info('Migrating solicitations Tempo table...');
+        $i = 0;
+        $j = 0;
+        foreach ($solicitations as $solicitation) {
+            $solicitacao = Solcitacao_Tempo::where('codigo', '=', $solicitation->id)->get()->first();
+
+            if ($solicitacao == NULL) {
+                $solicitacao = new Solcitacao_Tempo;
+                $solicitacao->codigo = $solicitation->id;
+                $j++;
+            }
+            $i++;
+
+            if ($solicitation->lastestSolicitationForward == null && $solicitation->type_id == 53) {
+                $solicitacao->soltpo2 = 1;
+                $solicitacao->soltpo3 = 1;
+                $solicitacao->soltpo4 = 1;
+                $solicitacao->soltpo5 = 1;
+                $solicitacao->soltpo6 = 2;
+                $solicitacao->soltresp = 4;
+                $solicitacao->soltaval = 6;
+                $solicitacao->soltreg = 3;
+            } else {
+                $solicitacao->soltpo2 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 8)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / (60);
+                $solicitacao->soltpo2 > 0 ? $solicitacao->soltpo2 : $solicitacao->soltpo2 = null;
+
+                $solicitacao->soltpo3 = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 8))) / (60);
+                $solicitacao->soltpo3 > 0 ? $solicitacao->soltpo3 : $solicitacao->soltpo3 = null;
+
+                $solicitacao->soltpo4 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 21)) - strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10))) / (60);
+                $solicitacao->soltpo4 > 0 ? $solicitacao->soltpo4 : $solicitacao->soltpo4 = null;
+
+                $solicitacao->soltpo5 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 21)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5))) / (60);
+                $solicitacao->soltpo5 > 0 ? $solicitacao->soltpo5 : $solicitacao->soltpo5 = null;
+
+                $solicitacao->soltpo6 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5))) / (60);
+                $solicitacao->soltpo6 > 0 ? $solicitacao->soltpo6 : $solicitacao->soltpo6 = null;
+
+                $solicitacao->soltresp = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / (60);
+                $solicitacao->soltresp > 0 ? $solicitacao->soltresp : $solicitacao->soltresp = null;
+
+                $solicitacao->soltaval = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / (60);
+                $solicitacao->soltaval > 0 ? $solicitacao->soltaval : $solicitacao->soltaval = null;
+
+                $solicitacao->soltreg = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / (60);
+                $solicitacao->soltreg > 0 ? $solicitacao->soltreg : $solicitacao->soltreg = null;
+
+            }
+            info($solicitacao->soltpo2);
+            info($solicitacao->soltpo3);
+            info($solicitacao->soltpo4);
+            info($solicitacao->soltpo5);
+            info($solicitacao->soltpo6);
+            info($solicitacao->soltresp);
+            info($solicitacao->soltaval);
+            info($solicitacao->soltreg);
+
+            try {
+                $solicitacao->save();
+            } catch (\Exception $e) {
+                Log::error($e->getMessage());
+            }
+        }
+
+        info($j);
+        info($i - $j);
+        return ['add' => $j, 'upd' => $i - $j];
+
+    }
+
+    /**
+     *
+     */
     public function migrateSolicitationDateTimestamp()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
@@ -593,15 +700,15 @@ class MigrationController extends Controller
                 if ($solicitation->type_id == 53) {
                     $solicitacao->soldtabertura = $solicitation->created_at;
                     $solicitacao->soldtenvio = $solicitation->created_at;
-                    $solicitacao->regdtreceb = date('Y-m-d H:i:s',strtotime("+1 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->regdtreceb = date('Y-m-d H:i:s', strtotime("+1 minutes", strtotime($solicitation->created_at)));
                     $solicitacao->regdtdevol = null;
-                    $solicitacao->regdtenvio = date('Y-m-d H:i:s',strtotime("+2 minutes", strtotime($solicitation->created_at)));
-                    $solicitacao->consdtacresp = date('Y-m-d H:i:s',strtotime("+3 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->regdtenvio = date('Y-m-d H:i:s', strtotime("+2 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->consdtacresp = date('Y-m-d H:i:s', strtotime("+3 minutes", strtotime($solicitation->created_at)));
                     $solicitacao->consdtdevol = null;
-                    $solicitacao->soldtenvresp = date('Y-m-d H:i:s',strtotime("+4 minutes", strtotime($solicitation->created_at)));
-                    $solicitacao->soldtsteleit = date('Y-m-d H:i:s',strtotime("+5 minutes", strtotime($solicitation->created_at)));
-                    $solicitacao->soldtavalin = date('Y-m-d H:i:s',strtotime("+6 minutes", strtotime($solicitation->created_at)));
-                    $solicitacao->soldtavalfim = date('Y-m-d H:i:s',strtotime("+6 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->soldtenvresp = date('Y-m-d H:i:s', strtotime("+4 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->soldtsteleit = date('Y-m-d H:i:s', strtotime("+5 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->soldtavalin = date('Y-m-d H:i:s', strtotime("+6 minutes", strtotime($solicitation->created_at)));
+                    $solicitacao->soldtavalfim = date('Y-m-d H:i:s', strtotime("+6 minutes", strtotime($solicitation->created_at)));
                 } else {
                     $solicitacao->soldtabertura = MigrationController::statusHistoryDate($solicitation->id, 6);
                     $solicitacao->soldtenvio = MigrationController::statusHistoryDate($solicitation->id, 6);
