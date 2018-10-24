@@ -587,7 +587,7 @@ class MigrationController extends Controller
     public function migrateSolicitationTempo()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-        $min_date = date('Y-m-d H:i:s', strtotime('-120 days', $today));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)->whereNotIn('status_id', [3, 4, 24, 25, 20])->get(['id', 'created_at', 'status_id', 'type_id']);
 
