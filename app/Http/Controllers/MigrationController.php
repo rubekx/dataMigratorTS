@@ -639,14 +639,14 @@ class MigrationController extends Controller
                 $solicitacao->soltreg > 0 ? $solicitacao->soltreg : $solicitacao->soltreg = null;
 
             }
-            info($solicitacao->soltpo2);
-            info($solicitacao->soltpo3);
-            info($solicitacao->soltpo4);
-            info($solicitacao->soltpo5);
-            info($solicitacao->soltpo6);
-            info($solicitacao->soltresp);
-            info($solicitacao->soltaval);
-            info($solicitacao->soltreg);
+//            info($solicitacao->soltpo2);
+//            info($solicitacao->soltpo3);
+//            info($solicitacao->soltpo4);
+//            info($solicitacao->soltpo5);
+//            info($solicitacao->soltpo6);
+//            info($solicitacao->soltresp);
+//            info($solicitacao->soltaval);
+//            info($solicitacao->soltreg);
 
             try {
                 $solicitacao->save();
@@ -902,6 +902,7 @@ class MigrationController extends Controller
         foreach ($profiles as $profile) {
             $perfil = Perfil::where('codigo', '=', $profile->id)->get()->first();
 
+//            info($profile->id);
             if ($perfil == NULL) {
                 $perfil = new Perfil;
                 $perfil->codigo = $profile->id;
@@ -923,7 +924,7 @@ class MigrationController extends Controller
 
             $perfil->ativo = ($profile->status_id == 1) ? 1 : 0;
 
-            $perfil->equipe = ($profile->role_id == 7 || $profile->role_id == 5) ? $profile->profile_team->team_id : 0;
+            $perfil->equipe = ($profile->role_id == 7 || $profile->role_id == 5) ? ($profile->profile_team != null ? $profile->profile_team->team_id : 0) : 0;
             $perfil->dataAtualizacao = date('Y-m-d');
 
             try {
@@ -945,6 +946,7 @@ class MigrationController extends Controller
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+
         $people = Person::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating people table...');
@@ -996,7 +998,7 @@ class MigrationController extends Controller
         $j = 0;
         foreach ($teams as $team) {
             $equipe = Equipe::where('codigo', '=', $team->id)->get()->first();
-
+            info($team->id);
             if ($equipe == NULL) {
                 $equipe = new Equipe;
                 $equipe->codigo = $team->id;
@@ -1005,7 +1007,8 @@ class MigrationController extends Controller
             $i++;
             $equipe->nome = $team->description;
             $equipe->ine = $team->ine;
-
+            $equipe->unidade = $team->unit_id;
+            $equipe->tipoequipe = $team->type_id != null ? $team->type_id : 0;
             $equipe->ativo = ($team->status_id == 1) ? 1 : 0;
             $equipe->dataAtualizacao = date('Y-m-d');
 
@@ -1045,6 +1048,7 @@ class MigrationController extends Controller
             $ubs->nome = $unit->description;
             $ubs->endereco = $unit->address;
             $ubs->telefone = $unit->telphone;
+            $ubs->ibge = $unit->city->ibge;
             $ubs->ativo = ($unit->status_id == 1) ? 1 : 0;
             $ubs->dataAtualizacao = date('Y-m-d');
 
