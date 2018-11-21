@@ -21,6 +21,11 @@ class SolicitationBySearch extends Model
         return $this->belongsTo('App\Solicitation');
     }
 
+    public function faq()
+    {
+        return $this->belongsTo('App\FAQ');
+    }
+
     public function hashId()
     {
         return Hashids::encode($this->id);

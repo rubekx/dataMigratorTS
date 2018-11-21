@@ -871,7 +871,7 @@ class MigrationController extends Controller
             }
             $i++;
             $solicitacao->solicitacaoTipo = ($solicitation->type_id == 52 || $solicitation->type_id == 53) ? 2 : 1;
-            $solicitacao->solcitacao = $solicitation->description;
+            $solicitacao->solcitacao = $solicitation->type_id == 52 ? $solicitation->description : ($solicitation->solicitationBySearch->answer_id != NUll ? $solicitation->solicitationBySearch->answer->solicitation->description : $solicitation->solicitationBySearch->faq->description);
             $solicitacao->solicitacaoAtivo = 0;
             $solicitacao->codigoSolicitante = $solicitation->profile_id;
             $solicitacao->pacienteAtivo = ($solicitation->patientForward != null) ? 1 : 0;
