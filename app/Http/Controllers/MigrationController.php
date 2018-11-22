@@ -93,6 +93,8 @@ class MigrationController extends Controller
         $add = $add + $arr['add'];
         $upd = $upd + $arr['upd'];
 
+        $controller->migrateSolicitationClass();
+
         $arr = $controller->migrateSolicitationCiapCid();
         $add = $add + $arr['add'];
         $upd = $upd + $arr['upd'];
@@ -182,6 +184,11 @@ class MigrationController extends Controller
         return null;
     }
 
+    /**
+     * @param $solicitation_id
+     * @param $status_id
+     * @return null
+     */
     public static function statusHistoryDateLate($solicitation_id, $status_id)
     {
         if (!empty($solicitation_id) && !empty($status_id)) {
@@ -846,6 +853,41 @@ class MigrationController extends Controller
         info($j);
         info($i - $j);
         return ['add' => $j, 'upd' => $i - $j];
+    }
+
+
+    /**
+     *
+     */
+    public function migrateSolicitationClass()
+    {
+        $today = strtotime(date('Y-m-d H:i:s'));
+        $min_date = date('Y-m-d H:i:s', strtotime('-30 minutes', $today));
+
+        $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+            ->whereNotNull('class_id')
+            ->get(['class_id']);
+
+        info('Migrating solicitations class...');
+        $i = 0;
+        $j = 0;
+
+        foreach ($solicitations as $solicitation) {
+
+            if (Solicitacao::where('codigo', '=', $solicitation->id)->whereNull('classificacao')->exists()) {
+
+                $solicitacao = Solicitacao::where('codigo', '=', $solicitation->id)->get()->first();
+                $solicitacao->classificacao = $solicitation->class_id;
+
+                try {
+                    $solicitacao->save();
+                } catch (\Exception $e) {
+                    Log::error($e->getMessage());
+                }
+            }
+        }
+        info($j);
+        info($i - $j);
     }
 
     /**
