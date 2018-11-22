@@ -870,7 +870,6 @@ class MigrationController extends Controller
 
         info('Migrating solicitations class...');
         $i = 0;
-        $j = 0;
 
         foreach ($solicitations as $solicitation) {
 
@@ -878,7 +877,7 @@ class MigrationController extends Controller
 
                 $solicitacao = Solicitacao::where('codigo', '=', $solicitation->id)->get()->first();
                 $solicitacao->classificacao = $solicitation->class_id;
-
+                $i++;
                 try {
                     $solicitacao->save();
                 } catch (\Exception $e) {
@@ -886,8 +885,7 @@ class MigrationController extends Controller
                 }
             }
         }
-        info($j);
-        info($i - $j);
+        info($i);
     }
 
     /**
