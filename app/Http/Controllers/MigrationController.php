@@ -862,11 +862,14 @@ class MigrationController extends Controller
     public function migrateSolicitationClass()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-        $min_date = date('Y-m-d H:i:s', strtotime('-30 minutes', $today));
+//        $min_date = date('Y-m-d H:i:s', strtotime('-30 minutes', $today));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+
+
 
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)
             ->whereNotNull('class_id')
-            ->get(['class_id']);
+            ->get();
 
         info('Migrating solicitations class...');
         $i = 0;
@@ -874,7 +877,6 @@ class MigrationController extends Controller
         foreach ($solicitations as $solicitation) {
 
             if (Solicitacao::where('codigo', '=', $solicitation->id)->whereNull('classificacao')->exists()) {
-
                 $solicitacao = Solicitacao::where('codigo', '=', $solicitation->id)->get()->first();
                 $solicitacao->classificacao = $solicitation->class_id;
                 $i++;
