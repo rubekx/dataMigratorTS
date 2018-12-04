@@ -59,6 +59,11 @@ class MigrationController extends Controller
     /**
      *
      */
+    private $solicitationToIgnore = ['201452'];
+
+    /**
+     *
+     */
     public static function populateDatabase()
     {
         $add = 0;
@@ -291,6 +296,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
             ->get();
 
         info('Migrating solicitations SolcodIbge table...');
@@ -325,7 +331,9 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
+            ->get();
 
         info('Migrating solicitations Status table...');
         $i = 0;
@@ -362,7 +370,10 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('created_at', '>=', $min_date)->where('status_id', 22)->get();
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
+            ->where('status_id', 22)
+            ->get();
 
         info('Migrating solicitations Satisfacao table...');
         $i = 0;
@@ -404,6 +415,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
             ->whereNotIn('status_id', [3, 4, 6, 7, 8, 9, 19, 20, 24, 25])
             ->get();
 
@@ -466,6 +478,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
             ->whereNotIn('status_id', [3, 6, 9, 20, 19, 25])
             ->get();
 
@@ -514,7 +527,9 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::has('patientForward')->where('created_at', '>=', $min_date);
+        $solicitations = Solicitation::has('patientForward')
+            ->whereNotIn('id', $this->solicitationToIgnore)
+            ->where('created_at', '>=', $min_date);
 
         info('Migrating solicitations Encaminhamento Paciente table...');
         $i = 0;
@@ -555,8 +570,9 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::has('patientForward')->where('created_at', '>=', $min_date)
-            ->get();
+        $solicitations = Solicitation::has('patientForward')
+            ->where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore);
 
         info('Migrating solicitations Encaminhamento table...');
         $i = 0;
@@ -596,7 +612,10 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('created_at', '>=', $min_date)->whereNotIn('status_id', [3, 4, 24, 25, 20])->get(['id', 'created_at', 'status_id', 'type_id']);
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
+            ->whereNotIn('status_id', [3, 4, 24, 25, 20])
+            ->get(['id', 'created_at', 'status_id', 'type_id']);
 
         info('Migrating solicitations Tempo table...');
         $i = 0;
@@ -676,7 +695,9 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get(['id', 'created_at', 'status_id', 'type_id']);
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
+            ->get(['id', 'created_at', 'status_id', 'type_id']);
 
         info('Migrating solicitations Date Timestamp table...');
         $i = 0;
@@ -748,7 +769,9 @@ class MigrationController extends Controller
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
-        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get(['id', 'created_at', 'status_id', 'type_id']);
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
+            ->get(['id', 'created_at', 'status_id', 'type_id']);
 
         info('Migrating solicitations Date table...');
         $i = 0;
@@ -823,6 +846,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
             ->whereIn('status_id', [5, 21, 22, 23])
             ->get();
 
@@ -866,8 +890,8 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
 
-
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
             ->whereNotNull('class_id')
             ->get();
 
@@ -898,7 +922,9 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
-        $solicitations = Solicitation::where('created_at', '>=', $min_date)->get();
+        $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->whereNotIn('id', $this->solicitationToIgnore)
+            ->get();
 
         info('Migrating solicitations table...');
         $i = 0;
@@ -937,7 +963,8 @@ class MigrationController extends Controller
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
-        $profiles = Profile::where('updated_at', '>=', $min_date)->get();
+        $profiles = Profile::where('updated_at', '>=', $min_date)
+            ->get();
 
         info('Migrating profiles table...');
         $i = 0;
