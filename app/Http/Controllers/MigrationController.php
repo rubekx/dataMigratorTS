@@ -59,7 +59,7 @@ class MigrationController extends Controller
     /**
      *
      */
-    private $solicitationToIgnore = ['201452'];
+    private $solicitationToIgnore = ['201452','201470','201469'];
 
     /**
      *
