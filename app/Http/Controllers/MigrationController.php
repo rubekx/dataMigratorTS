@@ -297,7 +297,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Solcod_Ibge::where('codigo', '=', $solicitation->id)->get()->first();
                 if ($solicitacao == NULL) {
                     $solicitacao = new Solcod_Ibge;
@@ -333,7 +333,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = StatusSolicitacao::where('codigo', '=', $solicitation->id)->get()->first();
                 if ($solicitacao == NULL) {
                     $solicitacao = new StatusSolicitacao;
@@ -374,7 +374,7 @@ class MigrationController extends Controller
         $j = 0;
         foreach ($solicitations as $solicitation) {
 //            info($solicitation->id);
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 if (Evaluation::where('solicitation_id', '=', $solicitation->id)->exists()) {
                     $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
 
@@ -418,27 +418,28 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Resposta::where('codigo', '=', $solicitation->id)->get()->first();
 
                 if ($solicitacao == NULL) {
+                    $solicitation->has('solicitationBySearch');
                     $solicitacao = new Resposta;
                     $solicitacao->codigo = $solicitation->id;
                     $j++;
                 }
                 $i++;
-//            info($solicitation->id);
                 if ($solicitation->type_id == 53) {
+//                    info($solicitation->id);
                     $solicitacao->codigoTeleconsultor = 276851;
                     $solicitacao->solicitacaoRepetida = 0;
                     $solicitacao->justificativaDevolucaoTeleconsultor = NULL;
-                    $solicitacao->solicitacaoResposta = $solicitation->has('solicitationBySearch') ? $solicitation->solicitationBySearch->answer->direct_answer : NULL;
-                    $solicitacao->solicitacaoComplemento = $solicitation->has('solicitationBySearch') ? $solicitation->solicitationBySearch->answer->complement : NULL;
-                    $solicitacao->solicitacaoAtributos = $solicitation->has('solicitationBySearch') ? $solicitation->solicitationBySearch->answer->attributes : NULL;
-                    $solicitacao->solicitacaoEduPermanente = $solicitation->has('solicitationBySearch') ? $solicitation->solicitationBySearch->answer->permanent_education : NULL;
-                    $solicitacao->solicitacaoReferencia = $solicitation->has('solicitationBySearch') ? $solicitation->solicitationBySearch->answer->references : NULL;
-                    $solicitacao->estrategiaBusca = $solicitation->has('solicitationBySearch') ? $solicitation->solicitationBySearch->answer->tags : NULL;
-                    $solicitacao->solsofcod = $solicitation->has('solicitationBySearch') ? $solicitation->solicitationBySearch->answer->isSOF : NULL;
+                    $solicitacao->solicitacaoResposta = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->direct_answer : NULL;
+                    $solicitacao->solicitacaoComplemento = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->complement : NULL;
+                    $solicitacao->solicitacaoAtributos = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->attributes : NULL;
+                    $solicitacao->solicitacaoEduPermanente = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->permanent_education : NULL;
+                    $solicitacao->solicitacaoReferencia = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->references : NULL;
+                    $solicitacao->estrategiaBusca = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->tags : NULL;
+                    $solicitacao->solsofcod = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->isSOF : NULL;
                     $solicitacao->respostaAceita = 1;
                 } else {
                     $solicitacao->codigoTeleconsultor = $solicitation->lastestSolicitationForward->consultant_profile_id;
@@ -482,7 +483,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Regulacao::where('codigo', '=', $solicitation->id)->get()->first();
 
                 if ($solicitacao == NULL) {
@@ -491,7 +492,7 @@ class MigrationController extends Controller
                     $j++;
                 }
                 $i++;
-//            info($solicitation->id);
+
                 if ($solicitation->type_id == 52) {
                     $solicitacao->codigoRegulador = $solicitation->lastestSolicitationForward->regulator_profile_id;
                     $solicitacao->aceiteTelerregulacao = 1;
@@ -532,7 +533,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = SolEncaminhamentoPaciente::where('solicitacao', '=', $solicitation->id)->get()->first();
 
                 if ($solicitacao == NULL) {
@@ -576,7 +577,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = SolEncaminhamento::where('codigo', '=', $solicitation->id)->get()->first();
 
                 if ($solicitacao == NULL) {
@@ -620,7 +621,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Solcitacao_Tempo::where('codigo', '=', $solicitation->id)->get()->first();
 
                 if ($solicitacao == NULL) {
@@ -703,7 +704,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Solicitacao_Datas_Timestamp::where('codigo', '=', $solicitation->id)->get()->first();
 
                 if ($solicitacao == NULL) {
@@ -779,7 +780,7 @@ class MigrationController extends Controller
         $j = 0;
         foreach ($solicitations as $solicitation) {
 
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Solicitacao_Datas::where('codigo', '=', $solicitation->id)->get()->first();
                 if ($solicitacao == NULL) {
                     $solicitacao = new Solicitacao_Datas;
@@ -856,7 +857,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Solicitacao_CIs::where('codigo', '=', $solicitation->id)->get()->first();
                 if ($solicitacao == NULL) {
                     $solicitacao = new Solicitacao_CIs;
@@ -901,7 +902,7 @@ class MigrationController extends Controller
         $i = 0;
 
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 if (Solicitacao::where('codigo', '=', $solicitation->id)->whereNull('classificacao')->exists()) {
                     $solicitacao = Solicitacao::where('codigo', '=', $solicitation->id)->get()->first();
                     $solicitacao->classificacao = $solicitation->class_id;
@@ -933,7 +934,7 @@ class MigrationController extends Controller
         $j = 0;
 
         foreach ($solicitations as $solicitation) {
-            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->has('solicitationBySearch'))) {
+            if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Solicitacao::where('codigo', '=', $solicitation->id)->get()->first();
 
                 if ($solicitacao == NULL) {
