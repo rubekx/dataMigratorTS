@@ -20,7 +20,7 @@ class Solicitation extends Model
 
     public function statusHistory()
     {
-        return $this->belongsTo('App\StatusHistory');
+        return $this->hasMany('App\StatusHistory');
     }
 
     public function hashId()

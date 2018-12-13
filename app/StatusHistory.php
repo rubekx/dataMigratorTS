@@ -13,4 +13,9 @@ class StatusHistory extends Model
     {
         return $this->belongsTo('App\Solicitation');
     }
+
+    public function status()
+    {
+        return $this->belongsTo('App\Status');
+    }
 }
