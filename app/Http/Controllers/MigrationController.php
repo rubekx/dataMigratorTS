@@ -199,6 +199,7 @@ class MigrationController extends Controller
             }
             $statusHistoryDate = StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get(['created_at'])->last();
             if ($statusHistoryDate) {
+//                info($statusHistoryDate['created_at']);
                 return $statusHistoryDate['created_at'];
             }
         }
@@ -611,7 +612,7 @@ class MigrationController extends Controller
     public function migrateSolicitationTempo()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
+        $min_date = date('Y-m-d H:i:s', strtotime('-180 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
             ->whereNotIn('status_id', [3, 4, 24, 25, 20])
@@ -641,44 +642,88 @@ class MigrationController extends Controller
                     $solicitacao->soltaval = 6;
                     $solicitacao->soltreg = 3;
                 } else {
-                    $solicitacao->soltpo2 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 8)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / (60);
-                    $solicitacao->soltpo2 > 0 ? $solicitacao->soltpo2 : $solicitacao->soltpo2 = null;
+                    if ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 8)->exists()) {
+                        $solicitacao->soltpo2 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 8)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
+                        $solicitacao->soltpo2 > 0 ? $solicitacao->soltpo2 = $solicitacao->soltpo2 = round($solicitacao->soltpo2, 3) : $solicitacao->soltpo2 = null;
+                    } else {
+                        $solicitacao->soltpo2 = null;
+                    }
+//                    info($solicitacao->soltpo2);
 
-                    $solicitacao->soltpo3 = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 8))) / (60);
-                    $solicitacao->soltpo3 > 0 ? $solicitacao->soltpo3 : $solicitacao->soltpo3 = null;
+                    if (($solicitation->statusHistory()->where('status_id', 8)->exists() && $solicitation->statusHistory()->where('status_id', 10)->exists())
+                        ||
+                        ($solicitation->statusHistory()->where('status_id', 8)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->type_id == 53)
+                    ) {
+                        $solicitacao->soltpo3 = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 8))) / 60;
+                        $solicitacao->soltpo3 > 0 ? $solicitacao->soltpo3 = $solicitacao->soltpo3 = round($solicitacao->soltpo3, 3) : $solicitacao->soltpo3 = null;
+                    } else {
+                        $solicitacao->soltpo3 = null;
+                    }
+//                    info($solicitacao->soltpo3);
 
-                    $solicitacao->soltpo4 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 21)) - strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10))) / (60);
-                    $solicitacao->soltpo4 > 0 ? $solicitacao->soltpo4 : $solicitacao->soltpo4 = null;
+                    if (($solicitation->statusHistory()->where('status_id', 21)->exists() && $solicitation->statusHistory()->where('status_id', 10)->exists())
+                        ||
+                        ($solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->statusHistory()->where('status_id', 21)->exists() && $solicitation->type_id == 53)
+                    ) {
+                        $solicitacao->soltpo4 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 21)) - strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10))) / 60;
+                        $solicitacao->soltpo4 > 0 ? $solicitacao->soltpo4 = $solicitacao->soltpo4 = round($solicitacao->soltpo4, 3) : $solicitacao->soltpo4 = null;
+                    } else {
+                        $solicitacao->soltpo4 = null;
+                    }
+//                    info($solicitacao->soltpo4);
 
-                    $solicitacao->soltpo5 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 21)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5))) / (60);
-                    $solicitacao->soltpo5 > 0 ? $solicitacao->soltpo5 : $solicitacao->soltpo5 = null;
+                    if ($solicitation->statusHistory()->where('status_id', 21)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists()) {
+                        $solicitacao->soltpo5 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 21)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5))) / 60;
+                        $solicitacao->soltpo5 > 0 ? $solicitacao->soltpo5 = round($solicitacao->soltpo5, 3) : $solicitacao->soltpo5 = null;
+                    } else {
+                        $solicitacao->soltpo5 = null;
+                    }
+//                    info($solicitacao->soltpo5);
 
-                    $solicitacao->soltpo6 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5))) / (60);
-                    $solicitacao->soltpo6 > 0 ? $solicitacao->soltpo6 : $solicitacao->soltpo6 = null;
+                    if ($solicitation->statusHistory()->where('status_id', 22)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists()) {
+                        $solicitacao->soltpo6 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5))) / 60;
+                        $solicitacao->soltpo6 > 0 ? $solicitacao->soltpo6 = round($solicitacao->soltpo6, 3) : $solicitacao->soltpo6 = null;
+                    } else {
+                        $solicitacao->soltpo6 = null;
+                    }
+//                    info($solicitacao->soltresp);
 
-                    $solicitacao->soltresp = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / (60);
-                    $solicitacao->soltresp > 0 ? $solicitacao->soltresp : $solicitacao->soltresp = null;
+                    if ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists()) {
+                        $solicitacao->soltresp = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
+                        $solicitacao->soltresp > 0 ? $solicitacao->soltresp = round($solicitacao->soltresp, 3) : $solicitacao->soltresp = null;
+                    } else {
+                        $solicitacao->soltresp = null;
+                    }
+//                    info($solicitacao->soltresp);
 
-                    $solicitacao->soltaval = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / (60);
-                    $solicitacao->soltaval > 0 ? $solicitacao->soltaval : $solicitacao->soltaval = null;
+                    if ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 22)->exists()) {
+                        $solicitacao->soltaval = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
+                        $solicitacao->soltaval > 0 ? $solicitacao->soltaval = round($solicitacao->soltaval, 3) : $solicitacao->soltaval = null;
+                    } else {
+                        $solicitacao->soltaval = null;
+                    }
+//                    info($solicitacao->soltaval);
 
-                    $solicitacao->soltreg = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / (60);
-                    $solicitacao->soltreg > 0 ? $solicitacao->soltreg : $solicitacao->soltreg = null;
+                    if (($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 10)->exists())
+                        ||
+                        ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->type_id == 53)
+                    ) {
+                        $solicitacao->soltreg = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
+                        info($solicitacao->soltreg);
+                        info($solicitacao->codigo);
+                        $solicitacao->soltreg > 0 ? $solicitacao->soltreg = round($solicitacao->soltreg, 3) : $solicitacao->soltreg = null;
+                    } else {
+                        $solicitacao->soltreg = null;
+                    }
 
                 }
-//            info($solicitacao->soltpo2);
-//            info($solicitacao->soltpo3);
-//            info($solicitacao->soltpo4);
-//            info($solicitacao->soltpo5);
-//            info($solicitacao->soltpo6);
-//            info($solicitacao->soltresp);
-//            info($solicitacao->soltaval);
-//            info($solicitacao->soltreg);
 
-                try {
-                    $solicitacao->save();
-                } catch (\Exception $e) {
-                    Log::error($e->getMessage());
+                if (!($solicitacao->soltpo2 == NULL && $solicitacao->soltpo3 = $solicitacao->soltpo4 == NULL && $solicitacao->soltpo5 == NULL && $solicitacao->soltpo6 == NULL && $solicitacao->soltresp == NULL && $solicitacao->soltaval == NULL && $solicitacao->soltreg == NULL)) {
+                    try {
+                        $solicitacao->save();
+                    } catch (\Exception $e) {
+                        Log::error($e->getMessage());
+                    }
                 }
             }
         }
