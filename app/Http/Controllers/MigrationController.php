@@ -612,7 +612,7 @@ class MigrationController extends Controller
     public function migrateSolicitationTempo()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-        $min_date = date('Y-m-d H:i:s', strtotime('-180 days', $today));
+        $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
             ->whereNotIn('status_id', [3, 4, 24, 25, 20])
@@ -694,7 +694,8 @@ class MigrationController extends Controller
                     } else {
                         $solicitacao->soltresp = null;
                     }
-//                    info($solicitacao->soltresp);
+                    info($solicitacao->soltreg);
+                    info($solicitacao->codigo);
 
                     if ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 22)->exists()) {
                         $solicitacao->soltaval = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
@@ -709,8 +710,8 @@ class MigrationController extends Controller
                         ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->type_id == 53)
                     ) {
                         $solicitacao->soltreg = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
-                        info($solicitacao->soltreg);
-                        info($solicitacao->codigo);
+//                        info($solicitacao->soltreg);
+//                        info($solicitacao->codigo);
                         $solicitacao->soltreg > 0 ? $solicitacao->soltreg = round($solicitacao->soltreg, 3) : $solicitacao->soltreg = null;
                     } else {
                         $solicitacao->soltreg = null;
