@@ -290,8 +290,8 @@ class MigrationController extends Controller
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
-
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->get();
 
         info('Migrating solicitations SolcodIbge table...');
@@ -328,6 +328,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->get();
 
         info('Migrating solicitations Status table...');
@@ -367,6 +368,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->where('status_id', 22)
             ->get();
 
@@ -412,6 +414,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->whereNotIn('status_id', [3, 4, 6, 7, 8, 9, 19, 20, 24, 25])
             ->get();
 
@@ -477,6 +480,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->whereNotIn('status_id', [3, 6, 9, 20, 19, 25])
             ->get();
 
@@ -528,6 +532,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::has('patientForward')
+            ->where('profile_id', '<>', 276853)
             ->where('created_at', '>=', $min_date);
 
         info('Migrating solicitations Encaminhamento Paciente table...');
@@ -572,6 +577,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::has('patientForward')
+            ->where('profile_id', '<>', 276853)
             ->where('created_at', '>=', $min_date);
 
         info('Migrating solicitations Encaminhamento table...');
@@ -616,6 +622,7 @@ class MigrationController extends Controller
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
             ->whereNotIn('status_id', [3, 4, 24, 25, 20])
+            ->where('profile_id', '<>', 276853)
             ->get(['id', 'created_at', 'status_id', 'type_id']);
 
         info('Migrating solicitations Tempo table...');
@@ -744,6 +751,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->get(['id', 'created_at', 'status_id', 'type_id']);
 
         info('Migrating solicitations Date Timestamp table...');
@@ -819,6 +827,7 @@ class MigrationController extends Controller
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->get(['id', 'created_at', 'status_id', 'type_id']);
 
         info('Migrating solicitations Date table...');
@@ -896,6 +905,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->whereIn('status_id', [5, 21, 22, 23])
             ->get();
 
@@ -941,6 +951,7 @@ class MigrationController extends Controller
 
 
         $solicitations = Solicitation::where('updated_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->whereNotNull('class_id')
             ->get();
 
@@ -973,6 +984,7 @@ class MigrationController extends Controller
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
+            ->where('profile_id', '<>', 276853)
             ->get();
 
         info('Migrating solicitations table...');
