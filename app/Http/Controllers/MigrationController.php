@@ -260,7 +260,7 @@ class MigrationController extends Controller
             } elseif ($status_id == 24) {
                 return 4;
             } elseif ($status_id == 25) {
-                return 1;
+                return 22;
             } elseif ($status_id == 27) {
                 return 1;
             } elseif ($status_id == 28) {
@@ -314,6 +314,7 @@ class MigrationController extends Controller
                 }
             }
         }
+
         info($j);
         info($i - $j);
         return ['add' => $j, 'upd' => $i - $j];
