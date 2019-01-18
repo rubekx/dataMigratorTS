@@ -423,6 +423,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
+//            info($solicitation->id);
             if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Resposta::where('codigo', '=', $solicitation->id)->get()->first();
 
@@ -434,17 +435,20 @@ class MigrationController extends Controller
                 }
                 $i++;
                 if ($solicitation->type_id == 53) {
-//                    info($solicitation->id);
+                    $relation = 'answer';
+                    if ($solicitation->solicitationBySearch->answer == null) {
+                        $relation = 'faq';
+                    }
                     $solicitacao->codigoTeleconsultor = 276851;
                     $solicitacao->solicitacaoRepetida = 0;
                     $solicitacao->justificativaDevolucaoTeleconsultor = NULL;
-                    $solicitacao->solicitacaoResposta = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->direct_answer : NULL;
-                    $solicitacao->solicitacaoComplemento = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->complement : NULL;
-                    $solicitacao->solicitacaoAtributos = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->attributes : NULL;
-                    $solicitacao->solicitacaoEduPermanente = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->permanent_education : NULL;
-                    $solicitacao->solicitacaoReferencia = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->references : NULL;
-                    $solicitacao->estrategiaBusca = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->tags : NULL;
-                    $solicitacao->solsofcod = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->answer->isSOF : NULL;
+                    $solicitacao->solicitacaoResposta = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->$relation->direct_answer : NULL;
+                    $solicitacao->solicitacaoComplemento = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->$relation->complement : NULL;
+                    $solicitacao->solicitacaoAtributos = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->$relation->attributes : NULL;
+                    $solicitacao->solicitacaoEduPermanente = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->$relation->permanent_education : NULL;
+                    $solicitacao->solicitacaoReferencia = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->$relation->references : NULL;
+                    $solicitacao->estrategiaBusca = $solicitation->solicitationBySearch()->exists() ? $solicitation->solicitationBySearch->$relation->tags : NULL;
+                    $solicitacao->solsofcod = $solicitation->solicitationBySearch()->exists() ? ($relation == 'answer' ? $solicitation->solicitationBySearch->answer->isSOF : null) : NULL;
                     $solicitacao->respostaAceita = 1;
                 } else {
                     $solicitacao->codigoTeleconsultor = $solicitation->lastestSolicitationForward->consultant_profile_id;
@@ -702,8 +706,8 @@ class MigrationController extends Controller
                     } else {
                         $solicitacao->soltresp = null;
                     }
-                    info($solicitacao->soltreg);
-                    info($solicitacao->codigo);
+//                    info($solicitacao->soltreg);
+//                    info($solicitacao->codigo);
 
                     if ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 22)->exists()) {
                         $solicitacao->soltaval = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
@@ -1133,7 +1137,7 @@ class MigrationController extends Controller
         $j = 0;
         foreach ($teams as $team) {
             $equipe = Equipe::where('codigo', '=', $team->id)->get()->first();
-            info($team->id);
+//            info($team->id);
             if ($equipe == NULL) {
                 $equipe = new Equipe;
                 $equipe->codigo = $team->id;
