@@ -601,7 +601,7 @@ class MigrationController extends Controller
                 $solicitacao->intencaoEncaminhamento = $solicitation->patientForward->has_intention;
                 $solicitacao->sugestaoEncaminhamento = 0;
                 $solicitacao->codigoSugestaoEncaminhamento = 0;
-                $solicitacao->cboEspecialidade = ($solicitation->patientForward != null) ? $solicitation->patientForward->cbo_id : null;
+                $solicitacao->cboEspecialidade = ($solicitation->patientForward != null) ? $solicitation->patientForward->cbo->code : null;
                 $solicitacao->evitacaoEncaminhamento = ($solicitation->evaluation != null) ? $solicitation->evaluation->avoided_forwarding : null;
                 $solicitacao->inducaoEncaminhamento = ($solicitation->evaluation != null) ? $solicitation->evaluation->induced_forwarding : null;
 
@@ -1102,7 +1102,7 @@ class MigrationController extends Controller
             $i++;
             if ($person->user != NULL) {
                 $pessoa->nome = $person->name;
-                $pessoa->sexo = ($person->sex == 'M') ? 0 : 1;
+                $pessoa->sexo = ($person->sex == 'M') ? 1 : 0;
                 $pessoa->nascimento = $person->birthday;
                 $pessoa->telefone = $person->celphone;
                 $pessoa->celular = $person->celphone;
