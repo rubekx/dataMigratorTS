@@ -1102,7 +1102,7 @@ class MigrationController extends Controller
             $i++;
             if ($person->user != NULL) {
                 $pessoa->nome = $person->name;
-                $pessoa->sexo = ($person->sex == 'M') ? 0 : 1;
+                $pessoa->sexo = ($person->sex == NULL) ? NULL : ($person->sex == 'M' ? 0 : 1);
                 $pessoa->nascimento = $person->birthday;
                 $pessoa->telefone = $person->celphone;
                 $pessoa->celular = $person->celphone;
