@@ -199,7 +199,7 @@ class MigrationController extends Controller
             }
             $statusHistoryDate = StatusHistory::where('solicitation_id', $solicitation_id)->where('status_id', $status_id)->get(['created_at'])->last();
             if ($statusHistoryDate) {
-//                info($statusHistoryDate['created_at']);
+                //                info($statusHistoryDate['created_at']);
                 return $statusHistoryDate['created_at'];
             }
         }
@@ -377,7 +377,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-//            info($solicitation->id);
+            //            info($solicitation->id);
             if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 if (Evaluation::where('solicitation_id', '=', $solicitation->id)->exists()) {
                     $solicitacao = Satisfacao::where('codigo', '=', $solicitation->id)->get()->first();
@@ -423,7 +423,7 @@ class MigrationController extends Controller
         $i = 0;
         $j = 0;
         foreach ($solicitations as $solicitation) {
-//            info($solicitation->id);
+            //            info($solicitation->id);
             if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
                 $solicitacao = Resposta::where('codigo', '=', $solicitation->id)->get()->first();
 
@@ -486,7 +486,7 @@ class MigrationController extends Controller
 
         $solicitations = Solicitation::where('created_at', '>=', $min_date)
             ->where('profile_id', '<>', 276853)
-            ->whereNotIn('status_id', [3, 6, 9, 20, 19, 25])
+            ->whereNotIn('status_id', [3, 6, 7, 9, 20, 19, 25])
             ->get();
 
         info('Migrating solicitations Regulacao table...');
@@ -661,29 +661,27 @@ class MigrationController extends Controller
                     } else {
                         $solicitacao->soltpo2 = null;
                     }
-//                    info($solicitacao->soltpo2);
+                    //                    info($solicitacao->soltpo2);
 
                     if (($solicitation->statusHistory()->where('status_id', 8)->exists() && $solicitation->statusHistory()->where('status_id', 10)->exists())
-                        ||
-                        ($solicitation->statusHistory()->where('status_id', 8)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->type_id == 53)
+                        || ($solicitation->statusHistory()->where('status_id', 8)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->type_id == 53)
                     ) {
                         $solicitacao->soltpo3 = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 8))) / 60;
                         $solicitacao->soltpo3 > 0 ? $solicitacao->soltpo3 = $solicitacao->soltpo3 = round($solicitacao->soltpo3, 3) : $solicitacao->soltpo3 = null;
                     } else {
                         $solicitacao->soltpo3 = null;
                     }
-//                    info($solicitacao->soltpo3);
+                    //                    info($solicitacao->soltpo3);
 
                     if (($solicitation->statusHistory()->where('status_id', 21)->exists() && $solicitation->statusHistory()->where('status_id', 10)->exists())
-                        ||
-                        ($solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->statusHistory()->where('status_id', 21)->exists() && $solicitation->type_id == 53)
+                        || ($solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->statusHistory()->where('status_id', 21)->exists() && $solicitation->type_id == 53)
                     ) {
                         $solicitacao->soltpo4 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 21)) - strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10))) / 60;
                         $solicitacao->soltpo4 > 0 ? $solicitacao->soltpo4 = $solicitacao->soltpo4 = round($solicitacao->soltpo4, 3) : $solicitacao->soltpo4 = null;
                     } else {
                         $solicitacao->soltpo4 = null;
                     }
-//                    info($solicitacao->soltpo4);
+                    //                    info($solicitacao->soltpo4);
 
                     if ($solicitation->statusHistory()->where('status_id', 21)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists()) {
                         $solicitacao->soltpo5 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 21)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5))) / 60;
@@ -691,7 +689,7 @@ class MigrationController extends Controller
                     } else {
                         $solicitacao->soltpo5 = null;
                     }
-//                    info($solicitacao->soltpo5);
+                    //                    info($solicitacao->soltpo5);
 
                     if ($solicitation->statusHistory()->where('status_id', 22)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists()) {
                         $solicitacao->soltpo6 = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5))) / 60;
@@ -699,7 +697,7 @@ class MigrationController extends Controller
                     } else {
                         $solicitacao->soltpo6 = null;
                     }
-//                    info($solicitacao->soltresp);
+                    //                    info($solicitacao->soltresp);
 
                     if ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists()) {
                         $solicitacao->soltresp = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 5)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
@@ -707,8 +705,8 @@ class MigrationController extends Controller
                     } else {
                         $solicitacao->soltresp = null;
                     }
-//                    info($solicitacao->soltreg);
-//                    info($solicitacao->codigo);
+                    //                    info($solicitacao->soltreg);
+                    //                    info($solicitacao->codigo);
 
                     if ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 22)->exists()) {
                         $solicitacao->soltaval = (strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 22)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
@@ -716,20 +714,18 @@ class MigrationController extends Controller
                     } else {
                         $solicitacao->soltaval = null;
                     }
-//                    info($solicitacao->soltaval);
+                    //                    info($solicitacao->soltaval);
 
                     if (($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 10)->exists())
-                        ||
-                        ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->type_id == 53)
+                        || ($solicitation->statusHistory()->where('status_id', 6)->exists() && $solicitation->statusHistory()->where('status_id', 5)->exists() && $solicitation->type_id == 53)
                     ) {
                         $solicitacao->soltreg = (strtotime($solicitation->type_id == 53 ? MigrationController::statusHistoryDateLate($solicitation->id, 5) : MigrationController::statusHistoryDateLate($solicitation->id, 10)) - strtotime(MigrationController::statusHistoryDateLate($solicitation->id, 6))) / 60;
-//                        info($solicitacao->soltreg);
-//                        info($solicitacao->codigo);
+                        //                        info($solicitacao->soltreg);
+                        //                        info($solicitacao->codigo);
                         $solicitacao->soltreg > 0 ? $solicitacao->soltreg = round($solicitacao->soltreg, 3) : $solicitacao->soltreg = null;
                     } else {
                         $solicitacao->soltreg = null;
                     }
-
                 }
 
                 if (!($solicitacao->soltpo2 == NULL && $solicitacao->soltpo3 = $solicitacao->soltpo4 == NULL && $solicitacao->soltpo5 == NULL && $solicitacao->soltpo6 == NULL && $solicitacao->soltresp == NULL && $solicitacao->soltaval == NULL && $solicitacao->soltreg == NULL)) {
@@ -745,7 +741,6 @@ class MigrationController extends Controller
         info($j);
         info($i - $j);
         return ['add' => $j, 'upd' => $i - $j];
-
     }
 
     /**
@@ -952,7 +947,7 @@ class MigrationController extends Controller
     public function migrateSolicitationClass()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-//        $min_date = date('Y-m-d H:i:s', strtotime('-30 minutes', $today));
+        //        $min_date = date('Y-m-d H:i:s', strtotime('-30 minutes', $today));
         $min_date = date('Y-m-d H:i:s', strtotime('-40 days', $today));
 
 
@@ -1042,7 +1037,7 @@ class MigrationController extends Controller
         foreach ($profiles as $profile) {
             $perfil = Perfil::where('codigo', '=', $profile->id)->get()->first();
 
-//            info($profile->id);
+            //            info($profile->id);
             if ($perfil == NULL) {
                 $perfil = new Perfil;
                 $perfil->codigo = $profile->id;
@@ -1138,7 +1133,7 @@ class MigrationController extends Controller
         $j = 0;
         foreach ($teams as $team) {
             $equipe = Equipe::where('codigo', '=', $team->id)->get()->first();
-//            info($team->id);
+            //            info($team->id);
             if ($equipe == NULL) {
                 $equipe = new Equipe;
                 $equipe->codigo = $team->id;
