@@ -494,6 +494,7 @@ class MigrationController extends Controller
         $j = 0;
         foreach ($solicitations as $solicitation) {
             if ($solicitation->type_id == 52 || ($solicitation->type_id == 53 && $solicitation->solicitationBySearch()->exists())) {
+                info($solicitation->id);
                 $solicitacao = Regulacao::where('codigo', '=', $solicitation->id)->get()->first();
 
                 if ($solicitacao == NULL) {
