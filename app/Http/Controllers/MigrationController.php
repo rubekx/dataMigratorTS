@@ -602,7 +602,7 @@ class MigrationController extends Controller
                 $solicitacao->intencaoEncaminhamento = $solicitation->patientForward->has_intention;
                 $solicitacao->sugestaoEncaminhamento = 0;
                 $solicitacao->codigoSugestaoEncaminhamento = 0;
-                $solicitacao->cboEspecialidade = ($solicitation->patientForward != null) ? $solicitation->patientForward->cbo->code : null;
+                $solicitacao->cboEspecialidade = ($solicitation->patientForward != null) ? ($solicitation->patientForward->cbo != null ? $solicitation->patientForward->cbo->code : null) : null;
                 $solicitacao->evitacaoEncaminhamento = ($solicitation->evaluation != null) ? $solicitation->evaluation->avoided_forwarding : null;
                 $solicitacao->inducaoEncaminhamento = ($solicitation->evaluation != null) ? $solicitation->evaluation->induced_forwarding : null;
 
