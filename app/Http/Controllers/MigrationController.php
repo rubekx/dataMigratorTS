@@ -1027,7 +1027,7 @@ class MigrationController extends Controller
     public function migrateProfiles()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-        $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+        $min_date = date('Y-m-d H:i:s', strtotime('-2 days', $today));
         $profiles = Profile::where('updated_at', '>=', $min_date)
             ->get();
 
@@ -1080,7 +1080,7 @@ class MigrationController extends Controller
     public function migratePeople()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-        $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+        $min_date = date('Y-m-d H:i:s', strtotime('-2 days', $today));
 
         $people = Person::where('updated_at', '>=', $min_date)->get();
 
@@ -1125,7 +1125,7 @@ class MigrationController extends Controller
     public function migrateTeams()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-        $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+        $min_date = date('Y-m-d H:i:s', strtotime('-2 days', $today));
         $teams = Team::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating teams table...');
@@ -1164,7 +1164,7 @@ class MigrationController extends Controller
     public function migrateUnits()
     {
         $today = strtotime(date('Y-m-d H:i:s'));
-        $min_date = date('Y-m-d H:i:s', strtotime('-2 hours', $today));
+        $min_date = date('Y-m-d H:i:s', strtotime('-2 days', $today));
         $units = Unit::where('updated_at', '>=', $min_date)->get();
 
         info('Migrating units table...');
