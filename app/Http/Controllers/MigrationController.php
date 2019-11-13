@@ -1126,7 +1126,7 @@ class MigrationController extends Controller
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-2 days', $today));
-        $teams = Team::where('updated_at', '>=', $min_date)->get();
+        $teams = Team::where('updated_at', '>=', $min_date)->where('status_id', '<>', 35)->get();
 
         info('Migrating teams table...');
         $i = 0;
@@ -1165,7 +1165,7 @@ class MigrationController extends Controller
     {
         $today = strtotime(date('Y-m-d H:i:s'));
         $min_date = date('Y-m-d H:i:s', strtotime('-2 days', $today));
-        $units = Unit::where('updated_at', '>=', $min_date)->get();
+        $units = Unit::where('updated_at', '>=', $min_date)->where('status_id', '<>', 35)->get();
 
         info('Migrating units table...');
         $i = 0;
