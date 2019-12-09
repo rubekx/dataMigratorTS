@@ -306,7 +306,8 @@ class MigrationController extends Controller
                     $j++;
                 }
                 $i++;
-                $solicitacao->ibge = $solicitation->profile->profile_team->team->unit->city->ibge != null ?  $solicitation->profile->profile_team->team->unit->city->ibge : null;                
+                info($solicitation->id);
+                $solicitacao->ibge = $solicitation->profile->profile_team != null ?  $solicitation->profile->profile_team->team->unit->city->ibge : null;                
                 try {
                     $solicitacao->save();
                 } catch (\Exception $e) {
