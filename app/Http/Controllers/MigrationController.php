@@ -307,7 +307,7 @@ class MigrationController extends Controller
                 }
                 $i++;
                 info($solicitation->id);
-                $solicitacao->ibge = $solicitation->profile->profile_team != null ?  $solicitation->profile->profile_team->team->unit->city->ibge : null;                
+                $solicitacao->ibge = $solicitation->profile->profile_team != null ?  $solicitation->profile->profile_team->team->unit->city->ibge : null;
                 try {
                     $solicitacao->save();
                 } catch (\Exception $e) {
@@ -1009,6 +1009,7 @@ class MigrationController extends Controller
                 $solicitacao->classificacao = $solicitation->class_id;
                 $solicitacao->codigoSolicitante = $solicitation->profile_id;
                 $solicitacao->pacienteAtivo = ($solicitation->patientForward != null) ? 1 : 0;
+                $solicitacao->mobile = $solicitation->mobile;
 
                 try {
                     $solicitacao->save();
